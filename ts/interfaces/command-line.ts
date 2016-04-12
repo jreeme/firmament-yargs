@@ -3,3 +3,6 @@ export interface CommandLine {
   addCommand(cmd:Command);
   exec();
 }
+export interface ConsoleEx extends Console {
+  table:any
+}

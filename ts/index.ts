@@ -1,11 +1,9 @@
+import {ConsoleEx} from "./interfaces/command-line";
 export * from './interfaces/command';
 export * from './interfaces/command-line';
 export * from './implementations/command-impl';
 export * from './implementations/command-line-impl';
 //Just sort of hack this in here for now
-interface ConsoleEx extends Console {
-  table:any
-}
 declare let console:ConsoleEx;
 (function () {
   if (typeof console === 'undefined') {

@@ -1,5 +1,4 @@
 "use strict";
-var log = require('jsnlog').JL();
 var CommandLineImpl = (function () {
     function CommandLineImpl() {
         this.cli = require('nested-yargs');
@@ -19,6 +18,9 @@ var CommandLineImpl = (function () {
             });
             _this.app.command(category);
         });
+    };
+    CommandLineImpl.printTable = function (rows) {
+        console.table(rows);
     };
     CommandLineImpl.prototype.exec = function () {
         this.cli.run(this.app);

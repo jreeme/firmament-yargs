@@ -1,6 +1,7 @@
 import {Command} from "../interfaces/command";
-import {CommandLine} from "../interfaces/command-line";
-const log:JSNLog.JSNLogLogger = require('jsnlog').JL();
+import {CommandLine, ConsoleEx} from "../interfaces/command-line";
+//const log:JSNLog.JSNLogLogger = require('jsnlog').JL();
+declare let console:ConsoleEx;
 export class CommandLineImpl implements CommandLine {
   private cli = require('nested-yargs');
   private app = this.cli.createApp();
@@ -23,6 +24,9 @@ export class CommandLineImpl implements CommandLine {
       });
       this.app.command(category);
     });
+  }
+  static printTable(rows:any[]){
+    console.table(rows);
   }
   exec() {
     this.cli.run(this.app);
