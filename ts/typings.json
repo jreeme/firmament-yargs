@@ -1,5 +1,6 @@
 {
   "ambientDependencies": {
+    "jsnlog": "registry:dt/jsnlog#11.0.0+20151114014156",
     "node": "registry:dt/node#4.0.0+20160412142033"
   },
   "dependencies": {}
