@@ -1,0 +1,29 @@
+{
+  "name": "firmament-yargs",
+  "version": "0.1.1",
+  "description": "Typescript classes for building CLI node applications",
+  "main": "js/index.js",
+  "scripts": {
+    "test": "node node_modules/mocha/bin/mocha -W"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jreeme/firmament-yargs.git"
+  },
+  "keywords": [
+    "firmament",
+    "yargs",
+    "cli"
+  ],
+  "author": "John Reeme <john.reeme@gmail.com> (http://blue-dot.com)",
+  "license": "WTFPL",
+  "bugs": {
+    "url": "https://github.com/jreeme/firmament-yargs/issues"
+  },
+  "homepage": "https://github.com/jreeme/firmament-yargs#readme",
+  "devDependencies": {
+  },
+  "dependencies": {
+    "nested-yargs": "^1.0.7"
+  }
+}
