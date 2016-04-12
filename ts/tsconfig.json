@@ -10,5 +10,8 @@
     "declaration": true,
     "suppressImplicitAnyIndexErrors": true,
     "outDir": "../js"
-  }
+  },
+  "filesGlob": [
+    "!./node_modules/**/*.ts"
+  ]
 }
