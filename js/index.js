@@ -4,6 +4,7 @@ function __export(m) {
 }
 __export(require('./implementations/command-impl'));
 __export(require('./implementations/command-line-impl'));
+__export(require('./implementations/progress-bar-impl'));
 (function () {
     if (typeof console === 'undefined') {
         throw new Error('Weird, console object is undefined');
