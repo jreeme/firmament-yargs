@@ -1,6 +1,6 @@
 {
   "name": "firmament-yargs",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Typescript classes for building CLI node applications",
   "main": "js/index.js",
   "typings": "js/index",
