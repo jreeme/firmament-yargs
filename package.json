@@ -26,6 +26,7 @@
   "dependencies": {
     "easy-table": "^1.0.0",
     "jsnlog": "^2.17.1",
-    "nested-yargs": "^1.0.7"
+    "nested-yargs": "^1.0.7",
+    "pm2-multimeter": "^0.1.2"
   }
 }

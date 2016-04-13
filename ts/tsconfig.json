@@ -1,17 +1,16 @@
 {
-  "version": "1.5.0-alpha",
   "compilerOptions": {
     "target": "es5",
     "module": "commonjs",
+    "moduleResolution": "node",
     "noImplicitAny": false,
     "removeComments": true,
     "noLib": false,
     "preserveConstEnums": true,
     "declaration": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": "../js"
-  },
-  "filesGlob": [
-    "!./node_modules/**/*.ts"
-  ]
+    "outDir": "../js",
+    "pretty": true,
+    "sourceMap": true
+  }
 }
