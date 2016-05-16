@@ -1,4 +1,5 @@
 "use strict";
+var childProcess = require('child_process');
 var log = require('jsnlog').JL();
 var CommandImpl = (function () {
     function CommandImpl() {
@@ -59,6 +60,14 @@ var CommandImpl = (function () {
             cb(err, result);
         }
         return !!err;
+    };
+    CommandImpl.prototype.spawnShellCommand = function (command, args, options, cb) {
+        options = options || { stdio: 'inherit', cwd: null };
+        options.stdio = options.stdio || 'inherit';
+        var child = childProcess.spawnSync(command, args, options);
+        process.nextTick(function () {
+            cb(child.error, child);
+        });
     };
     CommandImpl.generalUsage = '\nUsage: $0 <command> <sub-command> [options]';
     CommandImpl.epilog = '** "Let there be light"';

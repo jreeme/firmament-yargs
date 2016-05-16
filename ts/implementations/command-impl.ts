@@ -1,4 +1,6 @@
 import {Command} from "../interfaces/command";
+import {SpawnOptions} from "child_process";
+const childProcess = require('child_process');
 const log:JSNLog.JSNLogLogger = require('jsnlog').JL();
 export class CommandImpl implements Command {
   static generalUsage = '\nUsage: $0 <command> <sub-command> [options]';
@@ -72,6 +74,15 @@ export class CommandImpl implements Command {
       cb(err, result);
     }
     return !!err;
+  }
+  
+  public spawnShellCommand(command:string, args:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
+    options = options || {stdio: 'inherit', cwd: null};
+    options.stdio = options.stdio || 'inherit';
+    let child = childProcess.spawnSync(command, args, options);
+    process.nextTick(()=> {
+      cb(child.error, child);
+    });
   }
 }
 
