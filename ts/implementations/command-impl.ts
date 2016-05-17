@@ -47,6 +47,10 @@ export class CommandImpl implements Command {
     return '';
   }
 
+  protected processExitWithError(err:Error, nonErrorMessage:string = '') {
+    this.processExit(!!err ? 0 : 1, !!err ? err.message : nonErrorMessage);
+  }
+
   protected processExit(exitCode:number = 0, msg:string = '') {
     console.log(msg);
     process.exit(exitCode);
@@ -75,7 +79,7 @@ export class CommandImpl implements Command {
     }
     return !!err;
   }
-  
+
   public spawnShellCommand(command:string, args:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
     options = options || {stdio: 'inherit', cwd: null};
     options.stdio = options.stdio || 'inherit';

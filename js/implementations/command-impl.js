@@ -35,6 +35,10 @@ var CommandImpl = (function () {
         }
         return '';
     };
+    CommandImpl.prototype.processExitWithError = function (err, nonErrorMessage) {
+        if (nonErrorMessage === void 0) { nonErrorMessage = ''; }
+        this.processExit(!!err ? 0 : 1, !!err ? err.message : nonErrorMessage);
+    };
     CommandImpl.prototype.processExit = function (exitCode, msg) {
         if (exitCode === void 0) { exitCode = 0; }
         if (msg === void 0) { msg = ''; }

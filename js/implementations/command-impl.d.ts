@@ -13,6 +13,7 @@ export declare class CommandImpl implements Command {
     protected returnErrorStringOrMessage(err: Error, message: string): string;
     protected logErrors(errs: Error[], writeErrorToConsole?: boolean): string[];
     protected logError(err: Error, writeErrorToConsole?: boolean): string;
+    protected processExitWithError(err: Error, nonErrorMessage?: string): void;
     protected processExit(exitCode?: number, msg?: string): void;
     protected callbackIfError(cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
     protected logAndCallback(msg: string, cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
