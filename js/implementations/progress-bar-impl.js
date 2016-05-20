@@ -1,6 +1,4 @@
 "use strict";
-var multimeter = require('pm2-multimeter');
-var multi = multimeter(process);
 var ProgressBarImpl = (function () {
     function ProgressBarImpl() {
         this.config = {
@@ -16,9 +14,7 @@ var ProgressBarImpl = (function () {
     ProgressBarImpl.prototype.showProgressForTask = function (id, status, current, total) {
         var bar = this.progressBarMap[id];
         if (!bar) {
-            multi.offset++;
-            this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);
-            console.log('>');
+            console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());
         }
         status = ' ** ' + id + ': ' + status + '                    ';
         bar.ratio(current, total, status);

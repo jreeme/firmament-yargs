@@ -1,6 +1,6 @@
 import {ProgressBar} from "../interfaces/progress-bar";
-const multimeter = require('pm2-multimeter');
-const multi = multimeter(process);
+/*const multimeter = require('pm2-multimeter');
+const multi = multimeter(process);*/
 export class ProgressBarImpl implements ProgressBar {
   private config = {
     width: 40,
@@ -15,9 +15,9 @@ export class ProgressBarImpl implements ProgressBar {
   public showProgressForTask(id:string, status:string, current:number, total:number) {
     let bar = this.progressBarMap[id];
     if (!bar) {
-      multi.offset++;
-      this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);
-      console.log('>');// + id);
+/*      multi.offset++;
+      this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);*/
+      console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());// + id);
     }
     status = ' ** ' + id + ': ' + status + '                    ';
     bar.ratio(current, total, status);
