@@ -13,13 +13,14 @@ export class ProgressBarImpl implements ProgressBar {
   private offset:number = 0;
 
   public showProgressForTask(id:string, status:string, current:number, total:number) {
-    let bar = this.progressBarMap[id];
+    console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());// + id);
+/*    let bar = this.progressBarMap[id];
     if (!bar) {
-/*      multi.offset++;
-      this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);*/
+      multi.offset++;
+      this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);
       console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());// + id);
     }
     status = ' ** ' + id + ': ' + status + '                    ';
-    bar.ratio(current, total, status);
+    bar.ratio(current, total, status);*/
   }
 }

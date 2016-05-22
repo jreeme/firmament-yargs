@@ -12,12 +12,7 @@ var ProgressBarImpl = (function () {
         this.offset = 0;
     }
     ProgressBarImpl.prototype.showProgressForTask = function (id, status, current, total) {
-        var bar = this.progressBarMap[id];
-        if (!bar) {
-            console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());
-        }
-        status = ' ** ' + id + ': ' + status + '                    ';
-        bar.ratio(current, total, status);
+        console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());
     };
     return ProgressBarImpl;
 }());
