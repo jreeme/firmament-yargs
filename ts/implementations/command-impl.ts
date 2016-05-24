@@ -1,10 +1,14 @@
 import {Command} from "../interfaces/command";
 import {SpawnOptions} from "child_process";
+const readlineSync = require('readline-sync');
+const inpathSync = require('inpath').sync;
+const pidof = require('pidof');
 const childProcess = require('child_process');
 const log:JSNLog.JSNLogLogger = require('jsnlog').JL();
 export class CommandImpl implements Command {
   static generalUsage = '\nUsage: $0 <command> <sub-command> [options]';
   static epilog = '** "Let there be light"';
+  private static cachedPassword:string;
 
   constructor() {
     this.aliases = [];
@@ -80,13 +84,95 @@ export class CommandImpl implements Command {
     return !!err;
   }
 
-  public spawnShellCommand(command:string, args:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
+  public spawnShellCommand(cmd:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
     options = options || {stdio: 'inherit', cwd: null};
     options.stdio = options.stdio || 'inherit';
-    let child = childProcess.spawnSync(command, args, options);
+    var command = cmd.shift();
+    let child = childProcess.spawnSync(command, cmd, options);
     process.nextTick(()=> {
       cb(child.error, child);
     });
+  }
+  
+  sudoSpawn(cmd:string[], cb:(err?:Error)=>void) {
+    CommandImpl._sudoSpawn(cmd,cb);
+  }
+  sudoSpawnSync(cmd:string[]) {
+    return CommandImpl._sudoSpawnSync(cmd);
+  }
+
+  private static _sudoSpawn(cmd:string[], cb:(err?:Error)=>void) {
+    var child = CommandImpl._sudoSpawnSync(cmd);
+    child.stdout.on('data', (data)=> {
+      console.log(data.toString());
+    });
+    child.stdout.on('end', ()=> {
+      cb();
+    });
+    child.stdout.on('close', ()=> {
+      cb();
+    });
+    child.stdout.on('error', ()=> {
+      cb(new Error('Something went wrong with spawn'));
+    });
+  }
+
+  private static _sudoSpawnSync(command:string[]) {
+    var prompt = '#node-sudo-passwd#';
+    var prompts = 0;
+
+    var args = [ '-S', '-p', prompt ];
+    args.push.apply(args, command);
+
+    // The binary is the first non-dashed parameter to sudo
+    var bin = command.filter(function (i) { return i.indexOf('-') !== 0; })[0];
+
+    var options = options || {};
+    var spawnOptions = options.spawnOptions || {};
+    spawnOptions.stdio = 'pipe';
+
+    var path = process.env['PATH'].split(':');
+    var sudoBin = inpathSync('sudo', path);
+    var child = childProcess.spawn(sudoBin, args, spawnOptions);
+
+    // Wait for the sudo:d binary to start up
+    function waitForStartup(err, pid) {
+      if (err) {
+        throw new Error('Couldn\'t start ' + bin);
+      }
+
+      if (pid || child.exitCode !== null) {
+        child.emit('started');
+      } else {
+        setTimeout(function () {
+          pidof(bin, waitForStartup);
+        }, 100);
+      }
+    }
+    pidof(bin, waitForStartup);
+
+    // FIXME: Remove this handler when the child has successfully started
+    child.stderr.on('data', function (data) {
+      var lines = data.toString().trim().split('\n');
+      lines.forEach(function (line) {
+        if (line === prompt) {
+          if (++prompts > 1) {
+            // The previous entry must have been incorrect, since sudo asks again.
+            CommandImpl.cachedPassword = null;
+          }
+
+          if (CommandImpl.cachedPassword) {
+            child.stdin.write(CommandImpl.cachedPassword + '\n');
+          } else {
+            CommandImpl.cachedPassword = CommandImpl.cachedPassword
+              || readlineSync.question('sudo requires your password: ', {hideEchoBack: true});
+            child.stdin.write(CommandImpl.cachedPassword + '\n');
+          }
+        }
+      });
+    });
+
+    return child;
   }
 }
 

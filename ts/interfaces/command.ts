@@ -6,5 +6,7 @@ export interface Command {
   handler: (argv:any)=>void;
   options: any;
   subCommands: Command[];
-  spawnShellCommand(command:string, args:string[], options:SpawnOptions, cb:(err:Error, result:any)=>void);
+  spawnShellCommand(cmd:string[], options:SpawnOptions, cb:(err:Error, result:any)=>void);
+  sudoSpawnSync(cmd:string[]);
+  sudoSpawn(cmd:string[], cb:(err?:Error)=>void);
 }

@@ -1,4 +1,7 @@
 "use strict";
+var readlineSync = require('readline-sync');
+var inpathSync = require('inpath').sync;
+var pidof = require('pidof');
 var childProcess = require('child_process');
 var log = require('jsnlog').JL();
 var CommandImpl = (function () {
@@ -65,13 +68,81 @@ var CommandImpl = (function () {
         }
         return !!err;
     };
-    CommandImpl.prototype.spawnShellCommand = function (command, args, options, cb) {
+    CommandImpl.prototype.spawnShellCommand = function (cmd, options, cb) {
         options = options || { stdio: 'inherit', cwd: null };
         options.stdio = options.stdio || 'inherit';
-        var child = childProcess.spawnSync(command, args, options);
+        var command = cmd.shift();
+        var child = childProcess.spawnSync(command, cmd, options);
         process.nextTick(function () {
             cb(child.error, child);
         });
+    };
+    CommandImpl.prototype.sudoSpawn = function (cmd, cb) {
+        CommandImpl._sudoSpawn(cmd, cb);
+    };
+    CommandImpl.prototype.sudoSpawnSync = function (cmd) {
+        return CommandImpl._sudoSpawnSync(cmd);
+    };
+    CommandImpl._sudoSpawn = function (cmd, cb) {
+        var child = CommandImpl._sudoSpawnSync(cmd);
+        child.stdout.on('data', function (data) {
+            console.log(data.toString());
+        });
+        child.stdout.on('end', function () {
+            cb();
+        });
+        child.stdout.on('close', function () {
+            cb();
+        });
+        child.stdout.on('error', function () {
+            cb(new Error('Something went wrong with spawn'));
+        });
+    };
+    CommandImpl._sudoSpawnSync = function (command) {
+        var prompt = '#node-sudo-passwd#';
+        var prompts = 0;
+        var args = ['-S', '-p', prompt];
+        args.push.apply(args, command);
+        var bin = command.filter(function (i) { return i.indexOf('-') !== 0; })[0];
+        var options = options || {};
+        var spawnOptions = options.spawnOptions || {};
+        spawnOptions.stdio = 'pipe';
+        var path = process.env['PATH'].split(':');
+        var sudoBin = inpathSync('sudo', path);
+        var child = childProcess.spawn(sudoBin, args, spawnOptions);
+        function waitForStartup(err, pid) {
+            if (err) {
+                throw new Error('Couldn\'t start ' + bin);
+            }
+            if (pid || child.exitCode !== null) {
+                child.emit('started');
+            }
+            else {
+                setTimeout(function () {
+                    pidof(bin, waitForStartup);
+                }, 100);
+            }
+        }
+        pidof(bin, waitForStartup);
+        child.stderr.on('data', function (data) {
+            var lines = data.toString().trim().split('\n');
+            lines.forEach(function (line) {
+                if (line === prompt) {
+                    if (++prompts > 1) {
+                        CommandImpl.cachedPassword = null;
+                    }
+                    if (CommandImpl.cachedPassword) {
+                        child.stdin.write(CommandImpl.cachedPassword + '\n');
+                    }
+                    else {
+                        CommandImpl.cachedPassword = CommandImpl.cachedPassword
+                            || readlineSync.question('sudo requires your password: ', { hideEchoBack: true });
+                        child.stdin.write(CommandImpl.cachedPassword + '\n');
+                    }
+                }
+            });
+        });
+        return child;
     };
     CommandImpl.generalUsage = '\nUsage: $0 <command> <sub-command> [options]';
     CommandImpl.epilog = '** "Let there be light"';

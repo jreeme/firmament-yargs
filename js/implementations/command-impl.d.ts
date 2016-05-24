@@ -3,6 +3,7 @@ import { SpawnOptions } from "child_process";
 export declare class CommandImpl implements Command {
     static generalUsage: string;
     static epilog: string;
+    private static cachedPassword;
     constructor();
     aliases: string[];
     command: string;
@@ -17,5 +18,9 @@ export declare class CommandImpl implements Command {
     protected processExit(exitCode?: number, msg?: string): void;
     protected callbackIfError(cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
     protected logAndCallback(msg: string, cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
-    spawnShellCommand(command: string, args: string[], options?: SpawnOptions, cb?: (err: Error, result: any) => void): void;
+    spawnShellCommand(cmd: string[], options?: SpawnOptions, cb?: (err: Error, result: any) => void): void;
+    sudoSpawn(cmd: string[], cb: (err?: Error) => void): void;
+    sudoSpawnSync(cmd: string[]): any;
+    private static _sudoSpawn(cmd, cb);
+    private static _sudoSpawnSync(command);
 }
