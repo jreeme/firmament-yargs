@@ -68,6 +68,8 @@ var CommandImpl = (function () {
         }
         return !!err;
     };
+    CommandImpl.prototype.spawnShellCommandAsync = function (cmd, cb) {
+    };
     CommandImpl.prototype.spawnShellCommand = function (cmd, options, cb) {
         options = options || { stdio: 'inherit', cwd: null };
         options.stdio = options.stdio || 'inherit';
@@ -89,13 +91,22 @@ var CommandImpl = (function () {
             console.log(data.toString());
         });
         child.stdout.on('end', function () {
-            cb();
+            if (cb) {
+                cb();
+                cb = null;
+            }
         });
         child.stdout.on('close', function () {
-            cb();
+            if (cb) {
+                cb();
+                cb = null;
+            }
         });
         child.stdout.on('error', function () {
-            cb(new Error('Something went wrong with spawn'));
+            if (cb) {
+                cb(new Error('Something went wrong with spawn'));
+                cb = null;
+            }
         });
     };
     CommandImpl._sudoSpawnSync = function (command) {

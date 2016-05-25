@@ -84,6 +84,9 @@ export class CommandImpl implements Command {
     return !!err;
   }
 
+  spawnShellCommandAsync(cmd:string[], cb:(err:Error, result:string)=>void) {
+  }
+  
   public spawnShellCommand(cmd:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
     options = options || {stdio: 'inherit', cwd: null};
     options.stdio = options.stdio || 'inherit';
@@ -107,13 +110,22 @@ export class CommandImpl implements Command {
       console.log(data.toString());
     });
     child.stdout.on('end', ()=> {
-      cb();
+      if(cb){
+        cb();
+        cb = null;
+      }
     });
     child.stdout.on('close', ()=> {
-      cb();
+      if(cb){
+        cb();
+        cb = null;
+      }
     });
     child.stdout.on('error', ()=> {
-      cb(new Error('Something went wrong with spawn'));
+      if(cb){
+        cb(new Error('Something went wrong with spawn'));
+        cb = null;
+      }
     });
   }
 

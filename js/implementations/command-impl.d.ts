@@ -18,6 +18,7 @@ export declare class CommandImpl implements Command {
     protected processExit(exitCode?: number, msg?: string): void;
     protected callbackIfError(cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
     protected logAndCallback(msg: string, cb: (err: Error, result: any) => void, err?: Error, result?: any): boolean;
+    spawnShellCommandAsync(cmd: string[], cb: (err: Error, result: string) => void): void;
     spawnShellCommand(cmd: string[], options?: SpawnOptions, cb?: (err: Error, result: any) => void): void;
     sudoSpawn(cmd: string[], cb: (err?: Error) => void): void;
     sudoSpawnSync(cmd: string[]): any;
