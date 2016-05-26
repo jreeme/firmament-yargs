@@ -69,6 +69,24 @@ var CommandImpl = (function () {
         return !!err;
     };
     CommandImpl.prototype.spawnShellCommandAsync = function (cmd, cb) {
+        var command = cmd.shift();
+        var command = childProcess.spawn(command, cmd);
+        var result = '';
+        command.stdout.on('data', function (data) {
+            result += data.toString();
+        });
+        command.on('error', function (code) {
+            if (cb) {
+                cb(new Error('spawn error'), null);
+                cb = null;
+            }
+        });
+        command.on('close', function (code) {
+            if (cb) {
+                cb(null, result);
+                cb = null;
+            }
+        });
     };
     CommandImpl.prototype.spawnShellCommand = function (cmd, options, cb) {
         options = options || { stdio: 'inherit', cwd: null };

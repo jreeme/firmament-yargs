@@ -85,6 +85,24 @@ export class CommandImpl implements Command {
   }
 
   spawnShellCommandAsync(cmd:string[], cb:(err:Error, result:string)=>void) {
+    var command = cmd.shift();
+    let command = childProcess.spawn(command, cmd);
+    let result = '';
+    command.stdout.on('data', function(data) {
+      result += data.toString();
+    });
+    command.on('error', function(code) {
+      if(cb){
+        cb(new Error('spawn error'), null);
+        cb = null;
+      }
+    });
+    command.on('close', function(code) {
+      if(cb){
+        cb(null, result);
+        cb = null;
+      }
+    });
   }
   
   public spawnShellCommand(cmd:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
