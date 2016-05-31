@@ -70,18 +70,18 @@ var CommandImpl = (function () {
     };
     CommandImpl.prototype.spawnShellCommandAsync = function (cmd, cb) {
         var command = cmd.shift();
-        var command = childProcess.spawn(command, cmd);
+        var child = childProcess.spawn(command, cmd);
         var result = '';
-        command.stdout.on('data', function (data) {
+        child.stdout.on('data', function (data) {
             result += data.toString();
         });
-        command.on('error', function (code) {
+        child.on('error', function (code) {
             if (cb) {
                 cb(new Error('spawn error'), null);
                 cb = null;
             }
         });
-        command.on('close', function (code) {
+        child.on('close', function (code) {
             if (cb) {
                 cb(null, result);
                 cb = null;
@@ -91,6 +91,7 @@ var CommandImpl = (function () {
     CommandImpl.prototype.spawnShellCommand = function (cmd, options, cb) {
         options = options || { stdio: 'inherit', cwd: null };
         options.stdio = options.stdio || 'inherit';
+        console.log('Running `' + cmd + '` @ "' + options.cwd + '"');
         var command = cmd.shift();
         var child = childProcess.spawnSync(command, cmd, options);
         process.nextTick(function () {
@@ -132,7 +133,9 @@ var CommandImpl = (function () {
         var prompts = 0;
         var args = ['-S', '-p', prompt];
         args.push.apply(args, command);
-        var bin = command.filter(function (i) { return i.indexOf('-') !== 0; })[0];
+        var bin = command.filter(function (i) {
+            return i.indexOf('-') !== 0;
+        })[0];
         var options = options || {};
         var spawnOptions = options.spawnOptions || {};
         spawnOptions.stdio = 'pipe';
