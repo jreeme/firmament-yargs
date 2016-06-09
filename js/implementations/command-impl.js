@@ -68,9 +68,9 @@ var CommandImpl = (function () {
         }
         return !!err;
     };
-    CommandImpl.prototype.spawnShellCommandAsync = function (cmd, cb) {
+    CommandImpl.prototype.spawnShellCommandAsync = function (cmd, options, cb) {
         var command = cmd.shift();
-        var child = childProcess.spawn(command, cmd);
+        var child = childProcess.spawn(command, cmd, options);
         var result = '';
         child.stdout.on('data', function (data) {
             result += data.toString();
@@ -95,7 +95,9 @@ var CommandImpl = (function () {
         var command = cmd.shift();
         var child = childProcess.spawnSync(command, cmd, options);
         process.nextTick(function () {
-            cb(child.error, child);
+            if (cb) {
+                cb(child.error, child);
+            }
         });
     };
     CommandImpl.prototype.sudoSpawn = function (cmd, cb) {

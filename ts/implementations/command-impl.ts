@@ -84,9 +84,9 @@ export class CommandImpl implements Command {
     return !!err;
   }
 
-  spawnShellCommandAsync(cmd:string[], cb:(err:Error, result:string)=>void) {
+  spawnShellCommandAsync(cmd:string[], options:SpawnOptions, cb:(err:Error, result:string)=>void) {
     let command = cmd.shift();
-    let child = childProcess.spawn(command, cmd);
+    let child = childProcess.spawn(command, cmd, options);
     let result = '';
     child.stdout.on('data', function (data) {
       result += data.toString();
@@ -105,14 +105,16 @@ export class CommandImpl implements Command {
     });
   }
 
-  public spawnShellCommand(cmd:string[], options?:SpawnOptions, cb?:(err:Error, result:any)=>void) {
+  public spawnShellCommand(cmd:string[], options:SpawnOptions, cb:(err:Error, result:any)=>void) {
     options = options || {stdio: 'inherit', cwd: null};
     options.stdio = options.stdio || 'inherit';
     console.log('Running `' + cmd + '` @ "' + options.cwd + '"');
     var command = cmd.shift();
     let child = childProcess.spawnSync(command, cmd, options);
     process.nextTick(()=> {
-      cb(child.error, child);
+      if(cb){
+        cb(child.error, child);
+      }
     });
   }
 
