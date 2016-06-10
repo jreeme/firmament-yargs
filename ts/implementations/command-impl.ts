@@ -85,6 +85,7 @@ export class CommandImpl implements Command {
   }
 
   spawnShellCommandAsync(cmd:string[], options:SpawnOptions, cb:(err:Error, result:string)=>void) {
+    options = options || {stdio: 'pipe', cwd: '.'};
     let command = cmd.shift();
     let child = childProcess.spawn(command, cmd, options);
     let result = '';
@@ -106,7 +107,7 @@ export class CommandImpl implements Command {
   }
 
   public spawnShellCommand(cmd:string[], options:SpawnOptions, cb:(err:Error, result:any)=>void) {
-    options = options || {stdio: 'inherit', cwd: null};
+    options = options || {stdio: 'inherit', cwd: '.'};
     options.stdio = options.stdio || 'inherit';
     console.log('Running `' + cmd + '` @ "' + options.cwd + '"');
     var command = cmd.shift();

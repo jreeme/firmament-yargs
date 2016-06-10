@@ -69,6 +69,7 @@ var CommandImpl = (function () {
         return !!err;
     };
     CommandImpl.prototype.spawnShellCommandAsync = function (cmd, options, cb) {
+        options = options || { stdio: 'pipe', cwd: '.' };
         var command = cmd.shift();
         var child = childProcess.spawn(command, cmd, options);
         var result = '';
@@ -89,7 +90,7 @@ var CommandImpl = (function () {
         });
     };
     CommandImpl.prototype.spawnShellCommand = function (cmd, options, cb) {
-        options = options || { stdio: 'inherit', cwd: null };
+        options = options || { stdio: 'inherit', cwd: '.' };
         options.stdio = options.stdio || 'inherit';
         console.log('Running `' + cmd + '` @ "' + options.cwd + '"');
         var command = cmd.shift();
