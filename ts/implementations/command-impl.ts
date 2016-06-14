@@ -51,12 +51,12 @@ export class CommandImpl implements Command {
     return '';
   }
 
-  protected processExitWithError(err:Error, nonErrorMessage:string = '') {
-    this.processExit(!!err ? 0 : 1, !!err ? err.message : nonErrorMessage);
+  protected processExitWithError(err:Error, nonErrorMessage:string = null) {
+    this.processExit(!!err ? 1 : 0, !!err ? err.message : !!nonErrorMessage ? nonErrorMessage : '');
   }
 
-  protected processExit(exitCode:number = 0, msg:string = '') {
-    console.log(msg);
+  protected processExit(exitCode:number = 0, msg:string = null) {
+    console.log(!!msg ? msg : '');
     process.exit(exitCode);
   }
 

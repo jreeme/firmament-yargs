@@ -39,13 +39,13 @@ var CommandImpl = (function () {
         return '';
     };
     CommandImpl.prototype.processExitWithError = function (err, nonErrorMessage) {
-        if (nonErrorMessage === void 0) { nonErrorMessage = ''; }
-        this.processExit(!!err ? 0 : 1, !!err ? err.message : nonErrorMessage);
+        if (nonErrorMessage === void 0) { nonErrorMessage = null; }
+        this.processExit(!!err ? 1 : 0, !!err ? err.message : !!nonErrorMessage ? nonErrorMessage : '');
     };
     CommandImpl.prototype.processExit = function (exitCode, msg) {
         if (exitCode === void 0) { exitCode = 0; }
-        if (msg === void 0) { msg = ''; }
-        console.log(msg);
+        if (msg === void 0) { msg = null; }
+        console.log(!!msg ? msg : '');
         process.exit(exitCode);
     };
     CommandImpl.prototype.callbackIfError = function (cb, err, result) {
