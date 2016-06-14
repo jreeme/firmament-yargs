@@ -4,7 +4,12 @@ import {CommandLine, ConsoleEx} from "../interfaces/command-line";
 declare let console:ConsoleEx;
 export class CommandLineImpl implements CommandLine {
   private cli = require('nested-yargs');
-  private app = this.cli.createApp();
+  private app;
+
+  constructor(options:any) {
+    this.app = this.cli.createApp(options);
+  }
+
   addCommand(cmd:Command) {
     cmd.aliases.forEach(alias=> {
       let category = this.cli.createCategory(alias, cmd.commandDesc);
@@ -25,9 +30,11 @@ export class CommandLineImpl implements CommandLine {
       this.app.command(category);
     });
   }
-  static printTable(rows:any[]){
+
+  static printTable(rows:any[]) {
     console.table(rows);
   }
+
   exec() {
     this.cli.run(this.app);
   }

@@ -1,8 +1,8 @@
 "use strict";
 var CommandLineImpl = (function () {
-    function CommandLineImpl() {
+    function CommandLineImpl(options) {
         this.cli = require('nested-yargs');
-        this.app = this.cli.createApp();
+        this.app = this.cli.createApp(options);
     }
     CommandLineImpl.prototype.addCommand = function (cmd) {
         var _this = this;
