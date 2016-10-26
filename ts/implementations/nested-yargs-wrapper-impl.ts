@@ -1,5 +1,6 @@
-import {NestedYargs, NestedYargsApp, CommandHandler} from "../interfaces/nested-yargs-wrapper";
+import {NestedYargs, NestedYargsApp} from "../interfaces/nested-yargs-wrapper";
 import {injectable} from 'inversify';
+import {Command} from "../interfaces/command";
 @injectable()
 export class NestedYargsImpl implements NestedYargs {
   private nestedYargs = require('nested-yargs');
@@ -8,7 +9,7 @@ export class NestedYargsImpl implements NestedYargs {
     return this.nestedYargs.createApp(options);
   }
 
-  createCommand(alias: string, commandDesc: string, handler: CommandHandler): NestedYargsApp {
+  createCommand(alias: string, commandDesc: string, handler: Command): NestedYargsApp {
     return this.nestedYargs.createCommand(alias, commandDesc, handler);
   }
 
