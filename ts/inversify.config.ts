@@ -1,0 +1,15 @@
+import {Kernel} from 'inversify';
+import {ProgressBar} from "./interfaces/progress-bar";
+import {ProgressBarImpl} from "./implementations/progress-bar-impl";
+import {CommandLine} from "./interfaces/command-line";
+import {CommandLineImpl} from "./implementations/command-line-impl";
+import {Command} from "./interfaces/command";
+import {CommandImpl} from "./implementations/command-impl";
+import {NestedYargs} from "./interfaces/nested-yargs-wrapper";
+import {NestedYargsImpl} from "./implementations/nested-yargs-wrapper-impl";
+var kernel = new Kernel();
+kernel.bind<ProgressBar>('ProgressBar').to(ProgressBarImpl);
+kernel.bind<CommandLine>('CommandLine').to(CommandLineImpl);
+kernel.bind<NestedYargs>('NestedYargs').to(NestedYargsImpl);
+kernel.bind<Command>('Command').to(CommandImpl);
+export default kernel;

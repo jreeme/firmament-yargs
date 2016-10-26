@@ -1,10 +1,13 @@
+import {injectable} from "inversify";
 import {Command} from "../interfaces/command";
 import {SpawnOptions} from "child_process";
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
 const pidof = require('pidof');
 const childProcess = require('child_process');
-const log:JSNLog.JSNLogLogger = require('jsnlog').JL();
+import JSNLogLogger = JL.JSNLogLogger;
+const log:JSNLogLogger = require('jsnlog').JL();
+@injectable()
 export class CommandImpl implements Command {
   static generalUsage = '\nUsage: $0 <command> <sub-command> [options]';
   static epilog = '** "Let there be light"';
