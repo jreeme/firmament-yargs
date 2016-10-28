@@ -3,14 +3,12 @@ import kernel from '../inversify.config';
 import {expect} from 'chai';
 import * as sinon from 'sinon';
 import {CommandLine} from "../interfaces/command-line";
-import {NestedYargs} from "../interfaces/nested-yargs-wrapper";
-import {NestedYargsMockImpl} from "./nested-yargs-wrapper-impl-mock";
-import {CommandLineImpl} from "../implementations/command-line-impl";
+import {Command} from "../interfaces/command";
 describe('CommandLine', function () {
   let commandLine: CommandLine;
-  beforeEach(()=> {
-    kernel.unbind('NestedYargs');
-    kernel.bind<NestedYargs>('NestedYargs').to(NestedYargsMockImpl);
+  let testCommandArray: string[] = [];
+  let testCommandArrayArray: string[][] = [];
+  before(()=> {
     commandLine = kernel.get<CommandLine>('CommandLine');
   });
   describe('create using kernel', ()=> {
@@ -18,6 +16,9 @@ describe('CommandLine', function () {
       expect(commandLine).to.not.equal(null);
       done();
     });
+  });
+  before(()=> {
+    commandLine = kernel.get<CommandLine>('CommandLine');
   });
   describe('printTable', ()=> {
     let consoleTableStub: any;
@@ -36,14 +37,55 @@ describe('CommandLine', function () {
       (<any>console.table).restore();
     });
   });
-  describe('addCommand', ()=> {
-    it('should call NestedYargs.addCommand correctly', function (done) {
-      commandLine.init();
-      let cmdLineImpl = <CommandLineImpl>commandLine;
-      let yargsMock = <NestedYargsMockImpl>cmdLineImpl.nestedYargs;
-      commandLine.addCommand(yargsMock.testCommand);
-      yargsMock.verify();
-      done();
-    });
+  before(()=> {
+    commandLine = kernel.get<CommandLine>('CommandLine');
   });
+  describe('CommandLine.addCommand', ()=> {
+      before(()=> {
+        commandLine.init({
+          version: ()=> {
+            return 'version_number';
+          }
+        });
+        commandLine.addCommand(testCommand(testCommandArrayArray, (argv)=> {
+          for(let i = 0;i < argv._.length;++i){
+            expect(argv._[i]).to.equal(testCommandArray[i]);
+          }
+        }));
+      });
+      describe('commandLine.exec()', ()=> {
+        it('commands invoked correct functions', done=> {
+          testCommandArrayArray.forEach(command=> {
+            commandLine.exec(testCommandArray = command);
+          });
+          done();
+        });
+      });
+    }
+  );
 });
+function testCommand(commands: string[][], cb: (argv: any)=>void) {
+  let newCommand = kernel.get<Command>('Command');
+  newCommand.aliases = ['alias-top-1', 'alias-top-2'];
+  newCommand.commandDesc = 'topCommandDesc';
+  for (let i = 0; i < 3; ++i) {
+    let newSubCommand = kernel.get<Command>('Command');
+    newSubCommand.aliases = ['alias-sub-1-1-' + i, 'alias-sub-1-2-' + i];
+    newSubCommand.commandDesc = 'subCommandDesc-' + i;
+    if (i & 1) {
+      commands.push([newCommand.aliases[0], newSubCommand.aliases[0]]);
+      newSubCommand.handler = cb;
+    } else {
+      for (let j = 0; j < 3; ++j) {
+        let newSubSubCommand = kernel.get<Command>('Command');
+        newSubSubCommand.aliases = ['alias-sub-1-1-' + i + '-' + j, 'alias-sub-1-2-' + i + '-' + j];
+        newSubSubCommand.commandDesc = 'subCommandDesc-' + i + '-' + j;
+        commands.push([newCommand.aliases[0], newSubCommand.aliases[0], newSubSubCommand.aliases[0]]);
+        newSubSubCommand.handler = cb;
+        newSubCommand.subCommands.push(newSubSubCommand);
+      }
+    }
+    newCommand.subCommands.push(newSubCommand);
+  }
+  return newCommand;
+}

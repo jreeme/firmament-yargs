@@ -1,14 +1,14 @@
 import {Command} from "../interfaces/command";
 import {CommandLine, ConsoleEx} from "../interfaces/command-line";
 import {injectable, inject} from 'inversify';
-import {NestedYargs, NestedYargsApp} from "../interfaces/nested-yargs-wrapper";
+import {NestedYargs, NestedYargsCategory} from "../interfaces/nested-yargs-wrapper";
 declare let console: ConsoleEx;
 
 
 @injectable()
 export class CommandLineImpl implements CommandLine {
   nestedYargs: NestedYargs;
-  private nestedYargsApp: NestedYargsApp;
+  private nestedYargsApp: NestedYargsCategory;
 
   constructor(@inject('NestedYargs')_nestedYargs: NestedYargs) {
     this.nestedYargs = _nestedYargs;
@@ -24,13 +24,12 @@ export class CommandLineImpl implements CommandLine {
       let category = this.nestedYargs.createCategory(alias, cmd.commandDesc);
       cmd.subCommands.forEach(subCommand=> {
         subCommand.aliases.forEach(alias=> {
-          category.command(
-            this.nestedYargs.createCommand(
-              alias,
-              subCommand.commandDesc,
-              subCommand
-            )
+          let catCmd = this.nestedYargs.createCommand(
+            alias,
+            subCommand.commandDesc,
+            subCommand
           );
+          category.command(catCmd);
         });
       });
       this.nestedYargsApp.command(category);
@@ -41,8 +40,8 @@ export class CommandLineImpl implements CommandLine {
     console.table(rows);
   }
 
-  exec() {
-    this.nestedYargs.run(this.nestedYargsApp);
+  exec(unitTestArgs:string[] = []) {
+    this.nestedYargs.run(this.nestedYargsApp, unitTestArgs);
   }
 
   private addEasyTableToConsole() {

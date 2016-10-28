@@ -4,7 +4,7 @@ export interface CommandLine {
   init(options?:any);
   addCommand(cmd:Command);
   printTable(rows:any[]);
-  exec();
+  exec(unitTestArgs?:string[]);
 }
 export interface ConsoleEx extends Console {
   table:any
