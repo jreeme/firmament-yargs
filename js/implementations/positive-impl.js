@@ -9,10 +9,19 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 const inversify_1 = require('inversify');
+const positive_1 = require("../interfaces/positive");
 const positive = require('positive');
 let PositiveImpl = class PositiveImpl {
-    areYouSure(confirmMsg, cancelMsg, defaultAnswer = false) {
-        let retVal = positive(confirmMsg, defaultAnswer);
+    areYouSure(confirmMsg, cancelMsg, defaultAnswer = false, failureRetVal = positive_1.FailureRetVal.NOT_SET) {
+        let retVal = true;
+        try {
+            retVal = positive(confirmMsg, defaultAnswer);
+        }
+        catch (err) {
+            retVal = (failureRetVal !== positive_1.FailureRetVal.NOT_SET)
+                ? failureRetVal === positive_1.FailureRetVal.TRUE
+                : defaultAnswer;
+        }
         if (!retVal) {
             console.error(cancelMsg);
         }
