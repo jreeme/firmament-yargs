@@ -1,4 +1,4 @@
-import {Kernel} from 'inversify';
+import {Container} from 'inversify';
 import {ProgressBar} from "./interfaces/progress-bar";
 import {ProgressBarImpl} from "./implementations/progress-bar-impl";
 import {CommandLine} from "./interfaces/command-line";
@@ -13,7 +13,7 @@ import {CommandImpl} from "./implementations/command-impl";
 import {Command} from "./interfaces/command";
 import {Positive} from "./interfaces/positive";
 import {PositiveImpl} from "./implementations/positive-impl";
-var kernel = new Kernel();
+var kernel = new Container();
 kernel.bind<ProgressBar>('ProgressBar').to(ProgressBarImpl);
 kernel.bind<CommandLine>('CommandLine').to(CommandLineImpl);
 kernel.bind<NestedYargs>('NestedYargs').to(NestedYargsImpl);

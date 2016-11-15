@@ -7,7 +7,7 @@ const nested_yargs_wrapper_impl_1 = require("./implementations/nested-yargs-wrap
 const spawn_impl_1 = require("./implementations/spawn-impl");
 const command_impl_1 = require("./implementations/command-impl");
 const positive_impl_1 = require("./implementations/positive-impl");
-var kernel = new inversify_1.Kernel();
+var kernel = new inversify_1.Container();
 kernel.bind('ProgressBar').to(progress_bar_impl_1.ProgressBarImpl);
 kernel.bind('CommandLine').to(command_line_impl_1.CommandLineImpl);
 kernel.bind('NestedYargs').to(nested_yargs_wrapper_impl_1.NestedYargsImpl);

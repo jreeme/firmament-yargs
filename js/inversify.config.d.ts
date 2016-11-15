@@ -1,3 +1,3 @@
-import { Kernel } from 'inversify';
-declare var kernel: Kernel;
+import { Container } from 'inversify';
+declare var kernel: Container;
 export default kernel;
