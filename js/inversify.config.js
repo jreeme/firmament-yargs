@@ -12,7 +12,7 @@ kernel.bind('ProgressBar').to(progress_bar_impl_1.ProgressBarImpl);
 kernel.bind('CommandLine').to(command_line_impl_1.CommandLineImpl);
 kernel.bind('NestedYargs').to(nested_yargs_wrapper_impl_1.NestedYargsImpl);
 kernel.bind('CommandUtil').to(command_util_impl_1.CommandUtilImpl);
-kernel.bind('Command').to(command_impl_1.CommandImpl);
+kernel.bind('CommandImpl').to(command_impl_1.CommandImpl);
 kernel.bind('Spawn').to(spawn_impl_1.SpawnImpl);
 kernel.bind('Positive').to(positive_impl_1.PositiveImpl);
 Object.defineProperty(exports, "__esModule", { value: true });

@@ -65,11 +65,11 @@ describe('CommandLine', function () {
   );
 });
 function testCommand(commands: string[][], cb: (argv: any)=>void) {
-  let newCommand = kernel.get<Command>('Command');
+  let newCommand = kernel.get<Command>('CommandImpl');
   newCommand.aliases = ['alias-top-1', 'alias-top-2'];
   newCommand.commandDesc = 'topCommandDesc';
   for (let i = 0; i < 3; ++i) {
-    let newSubCommand = kernel.get<Command>('Command');
+    let newSubCommand = kernel.get<Command>('CommandImpl');
     newSubCommand.aliases = ['alias-sub-1-1-' + i, 'alias-sub-1-2-' + i];
     newSubCommand.commandDesc = 'subCommandDesc-' + i;
     if (i & 1) {
@@ -77,7 +77,7 @@ function testCommand(commands: string[][], cb: (argv: any)=>void) {
       newSubCommand.handler = cb;
     } else {
       for (let j = 0; j < 3; ++j) {
-        let newSubSubCommand = kernel.get<Command>('Command');
+        let newSubSubCommand = kernel.get<Command>('CommandImpl');
         newSubSubCommand.aliases = ['alias-sub-1-1-' + i + '-' + j, 'alias-sub-1-2-' + i + '-' + j];
         newSubSubCommand.commandDesc = 'subCommandDesc-' + i + '-' + j;
         commands.push([newCommand.aliases[0], newSubCommand.aliases[0], newSubSubCommand.aliases[0]]);

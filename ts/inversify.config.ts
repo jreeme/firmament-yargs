@@ -18,7 +18,7 @@ kernel.bind<ProgressBar>('ProgressBar').to(ProgressBarImpl);
 kernel.bind<CommandLine>('CommandLine').to(CommandLineImpl);
 kernel.bind<NestedYargs>('NestedYargs').to(NestedYargsImpl);
 kernel.bind<CommandUtil>('CommandUtil').to(CommandUtilImpl);
-kernel.bind<Command>('Command').to(CommandImpl);
+kernel.bind<Command>('CommandImpl').to(CommandImpl);
 kernel.bind<Spawn>('Spawn').to(SpawnImpl);
 kernel.bind<Positive>('Positive').to(PositiveImpl);
 export default kernel;

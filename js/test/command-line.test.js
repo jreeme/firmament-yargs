@@ -63,11 +63,11 @@ describe('CommandLine', function () {
     });
 });
 function testCommand(commands, cb) {
-    let newCommand = inversify_config_1.default.get('Command');
+    let newCommand = inversify_config_1.default.get('CommandImpl');
     newCommand.aliases = ['alias-top-1', 'alias-top-2'];
     newCommand.commandDesc = 'topCommandDesc';
     for (let i = 0; i < 3; ++i) {
-        let newSubCommand = inversify_config_1.default.get('Command');
+        let newSubCommand = inversify_config_1.default.get('CommandImpl');
         newSubCommand.aliases = ['alias-sub-1-1-' + i, 'alias-sub-1-2-' + i];
         newSubCommand.commandDesc = 'subCommandDesc-' + i;
         if (i & 1) {
@@ -76,7 +76,7 @@ function testCommand(commands, cb) {
         }
         else {
             for (let j = 0; j < 3; ++j) {
-                let newSubSubCommand = inversify_config_1.default.get('Command');
+                let newSubSubCommand = inversify_config_1.default.get('CommandImpl');
                 newSubSubCommand.aliases = ['alias-sub-1-1-' + i + '-' + j, 'alias-sub-1-2-' + i + '-' + j];
                 newSubSubCommand.commandDesc = 'subCommandDesc-' + i + '-' + j;
                 commands.push([newCommand.aliases[0], newSubCommand.aliases[0], newSubSubCommand.aliases[0]]);
