@@ -1,21 +1,50 @@
-import {injectable} from "inversify";
+import {injectable, inject} from "inversify";
+import {Spawn} from '../interfaces/spawn';
 import {SpawnOptions} from "child_process";
+import {ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
+import {CommandUtil} from '../interfaces/command-util';
+import {ForceErrorImpl} from "./force-error-impl";
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
 const pidof = require('pidof');
-const childProcess = require('child_process');
-import JSNLogLogger = JL.JSNLogLogger;
-import {Spawn} from "../interfaces/spawn";
-//const log:JSNLogLogger = require('jsnlog').JL();
 //noinspection JSUnusedGlobalSymbols
 @injectable()
-export class SpawnImpl implements Spawn {
-  private static cachedPassword:string;
+export class SpawnImpl extends ForceErrorImpl implements Spawn {
+  private static cachedPassword: string;
 
-  spawnShellCommandAsync(cmd:string[], options:SpawnOptions, cb:(err:Error, result:string)=>void) {
+  commandUtil: CommandUtil;
+
+  constructor(@inject('CommandUtil')_commandUtil: CommandUtil) {
+    super();
+    this.commandUtil = _commandUtil;
+  }
+
+  public spawnShellCommandSync(cmd: string[],
+                               options: SpawnOptions = {},
+                               cb: (err: Error,
+                                    spawnSyncReturns: SpawnSyncReturns<Buffer>)=>void = null) {
+    cb = this.checkCallback(cb);
+    if (this.checkForceError('spawnShellCommandSync', cb)) {
+      return;
+    }
+    try {
+      cmd = cmd || [];
+      options = options || {};
+      options.stdio = options.stdio || 'inherit';
+      options.cwd = options.cwd || __dirname;
+      this.commandUtil.log(`Running '${cmd}' @ ' ${options.cwd}`);
+      let command = cmd.shift();
+      let child: SpawnSyncReturns<Buffer> = spawnSync(command, cmd, options);
+      cb(child.error, child);
+    } catch (err) {
+      cb(err, null);
+    }
+  }
+
+  spawnShellCommandAsync(cmd: string[], options: SpawnOptions, cb: (err: Error, result: string)=>void) {
     options = options || {stdio: 'pipe', cwd: '.'};
     let command = cmd.shift();
-    let child = childProcess.spawn(command, cmd, options);
+    let child: ChildProcess = spawn(command, cmd, options);
     let result = '';
     child.stdout.on('data', function (data) {
       result += data.toString();
@@ -36,45 +65,32 @@ export class SpawnImpl implements Spawn {
     });
   }
 
-  public spawnShellCommand(cmd:string[], options:SpawnOptions, cb:(err:Error, result:any)=>void) {
-    options = options || {stdio: 'inherit', cwd: '.'};
-    options.stdio = options.stdio || 'inherit';
-    console.log('Running `' + cmd + '` @ "' + options.cwd + '"');
-    var command = cmd.shift();
-    let child = childProcess.spawnSync(command, cmd, options);
-    process.nextTick(()=> {
-      if(cb){
-        cb(child.error, child);
-      }
-    });
-  }
-
-  sudoSpawn(cmd:string[], cb:(err?:Error)=>void) {
+  sudoSpawn(cmd: string[], cb: (err?: Error)=>void) {
     SpawnImpl._sudoSpawn(cmd, cb);
   }
 
-  sudoSpawnSync(cmd:string[]) {
+  sudoSpawnSync(cmd: string[]) {
     return SpawnImpl._sudoSpawnSync(cmd);
   }
 
-  private static _sudoSpawn(cmd:string[], cb:(err?:Error)=>void) {
-    var child = SpawnImpl._sudoSpawnSync(cmd);
-    child.stdout.on('data', (data)=> {
+  private static _sudoSpawn(cmd: string[], cb: (err?: Error)=>void) {
+    let child = SpawnImpl._sudoSpawnSync(cmd);
+    child.stdout.on('data', (data) => {
       console.log(data.toString());
     });
-    child.stdout.on('end', ()=> {
+    child.stdout.on('end', () => {
       if (cb) {
         cb();
         cb = null;
       }
     });
-    child.stdout.on('close', ()=> {
+    child.stdout.on('close', () => {
       if (cb) {
         cb();
         cb = null;
       }
     });
-    child.stdout.on('error', ()=> {
+    child.stdout.on('error', () => {
       if (cb) {
         cb(new Error('Something went wrong with spawn'));
         cb = null;
@@ -82,27 +98,27 @@ export class SpawnImpl implements Spawn {
     });
   }
 
-  private static _sudoSpawnSync(command:string[]) {
-    var prompt = '#node-sudo-passwd#';
-    var prompts = 0;
-    var args = ['-S', '-p', prompt];
+  private static _sudoSpawnSync(command: string[]) {
+    let prompt = '#node-sudo-passwd#';
+    let prompts = 0;
+    let args = ['-S', '-p', prompt];
     args.push.apply(args, command);
     // The binary is the first non-dashed parameter to sudo
-    var bin = command.filter(function (i) {
+    let bin = command.filter(function (i) {
       return i.indexOf('-') !== 0;
     })[0];
-    var options = options || {};
-    var spawnOptions = options.spawnOptions || {};
-    spawnOptions.stdio = 'pipe';
-    var path = process.env['PATH'].split(':');
-    var sudoBin = inpathSync('sudo', path);
-    var child = childProcess.spawn(sudoBin, args, spawnOptions);
+    let spawnOptions = {
+      stdio: 'pipe'
+    };
+    let path = process.env['PATH'].split(':');
+    let sudoBin = inpathSync('sudo', path);
+    let child: ChildProcess = spawn(sudoBin, args, spawnOptions);
     // Wait for the sudo:d binary to start up
     function waitForStartup(err, pid) {
       if (err) {
-        throw new Error('Couldn\'t start ' + bin);
+        throw new Error(`Couldn't start ` + bin);
       }
-      if (pid || child.exitCode !== null) {
+      if (pid) {
         child.emit('started');
       } else {
         setTimeout(function () {
@@ -114,7 +130,7 @@ export class SpawnImpl implements Spawn {
     pidof(bin, waitForStartup);
     // FIXME: Remove this handler when the child has successfully started
     child.stderr.on('data', function (data) {
-      var lines = data.toString().trim().split('\n');
+      let lines = data.toString().trim().split('\n');
       lines.forEach(function (line) {
         if (line === prompt) {
           if (++prompts > 1) {

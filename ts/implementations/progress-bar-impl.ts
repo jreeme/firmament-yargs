@@ -4,7 +4,7 @@ import {injectable} from 'inversify';
  const multi = multimeter(process);*/
 @injectable()
 export class ProgressBarImpl implements ProgressBar {
-  private config = {
+/*  private config = {
     width: 40,
     before: '[',
     after: ']',
@@ -12,7 +12,7 @@ export class ProgressBarImpl implements ProgressBar {
     empty: {background: null, foreground: null, text: ' '}
   };
   private progressBarMap = {};
-  private offset: number = 0;
+  private offset: number = 0;*/
 
   public showProgressForTask(id: string, status: string, current: number, total: number) {
     //TODO: Quick and dirty implementation. Try to get 'pm2-multimeter' working someday.

@@ -18,7 +18,6 @@ export class NestedYargsImpl implements NestedYargs {
   }
 
   run(app: NestedYargsCategory, unitTestArgs:string[] = []): void {
-
     let yargs = unitTestArgs.length
       ? require('yargs')(unitTestArgs)
       : null;

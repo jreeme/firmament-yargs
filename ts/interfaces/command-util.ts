@@ -11,4 +11,7 @@ export interface CommandUtil {
                  cb: (err: Error, result: any)=>void,
                  err?: Error,
                  result?: any): boolean;
+  log(msg: string);
+  error(msg: string);
+  quiet:boolean;
 }
