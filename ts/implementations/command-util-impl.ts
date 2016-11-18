@@ -8,8 +8,8 @@ interface LogConsole {
 @injectable()
 export class CommandUtilImpl implements CommandUtil {
   private _console: LogConsole = {
-    log: console.log,
-    error: console.error
+    log: this.stdoutLog,
+    error: this.stdoutLog
   };
 
   constructor() {
@@ -20,9 +20,14 @@ export class CommandUtilImpl implements CommandUtil {
   private dummyLog(msg: string) {
   }
 
+  private stdoutLog(msg: string){
+    //console.log(msg);
+    process.stdout.write(`${msg}\n`);
+  }
+
   set quiet(beQuiet: boolean) {
-    this._console.log = (beQuiet) ? this.dummyLog : console.log;
-    this._console.error = (beQuiet) ? this.dummyLog : console.error;
+    this._console.log = (beQuiet) ? this.dummyLog : this.stdoutLog;
+    this._console.error = (beQuiet) ? this.dummyLog : this.stdoutLog;
   }
 
   returnErrorStringOrMessage(err: Error, message: string) {

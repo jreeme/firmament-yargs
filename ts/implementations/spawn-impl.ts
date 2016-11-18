@@ -1,7 +1,6 @@
 import {injectable, inject} from "inversify";
 import {Spawn} from '../interfaces/spawn';
-import {SpawnOptions} from "child_process";
-import {ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
+import {SpawnOptions, ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
 import {CommandUtil} from '../interfaces/command-util';
 import {ForceErrorImpl} from "./force-error-impl";
 const readlineSync = require('readline-sync');
@@ -32,7 +31,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       options = options || {};
       options.stdio = options.stdio || 'inherit';
       options.cwd = options.cwd || __dirname;
-      this.commandUtil.log(`Running '${cmd}' @ ' ${options.cwd}`);
+      this.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
       let command = cmd.shift();
       let child: SpawnSyncReturns<Buffer> = spawnSync(command, cmd, options);
       cb(child.error, child);
@@ -41,7 +40,9 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
   }
 
-  spawnShellCommandAsync(cmd: string[], options: SpawnOptions, cb: (err: Error, result: string)=>void) {
+  spawnShellCommandAsync(cmd: string[],
+                         options: SpawnOptions,
+                         cb: (err: Error, result: string)=>void) {
     options = options || {stdio: 'pipe', cwd: '.'};
     let command = cmd.shift();
     let child: ChildProcess = spawn(command, cmd, options);
