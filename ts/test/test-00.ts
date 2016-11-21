@@ -7,7 +7,7 @@ function sleep(milliseconds) {
   }
 }
 (function () {
-  for (let i = 0; i < 3; ++i) {
+  for (let i = 0; i < 300; ++i) {
     sleep(500);
     process.stdout.write(`test me: ${i}\n`);
   }

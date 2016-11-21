@@ -5,7 +5,8 @@
   "main": "js/index.js",
   "typings": "js/index",
   "scripts": {
-    "test": "./node_modules/.bin/mocha --reporter spec js/test"
+    "build": "tsc --project ts/tsconfig.json",
+    "test": "mocha --reporter spec js/test"
   },
   "repository": {
     "type": "git",
@@ -42,6 +43,7 @@
     "nested-yargs": "^1.0.7",
     "pidof": "^1.0.2",
     "positive": "^1.0.9",
+    "ps-tree": "^1.1.0",
     "readline-sync": "^1.4.2",
     "reflect-metadata": "^0.1.8"
   }

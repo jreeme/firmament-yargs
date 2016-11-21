@@ -5,7 +5,7 @@ import {Spawn} from "../interfaces/spawn";
 import {SpawnOptions} from 'child_process';
 import path = require('path');
 import fs = require('fs');
-const testOutputPath = '/tmp/testout2.log';
+const testOutputPath = '/tmp/testout.log';
 let stdout: number;
 describe('SpawnSync (no console out)', function () {
   let spawn: Spawn;
