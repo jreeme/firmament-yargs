@@ -30,6 +30,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
     try {
       cmd = cmd || [];
+      cmd = cmd.slice(0);
       options = options || {};
       options.stdio = options.stdio || 'inherit';
       options.cwd = options.cwd || __dirname;
@@ -69,6 +70,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
     try {
       cmd = cmd || [];
+      cmd = cmd.slice(0);
       options = options || {};
       options.stdio = options.stdio || 'pipe';
       options.cwd = options.cwd || __dirname;
@@ -131,6 +133,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let prompt = '#node-sudo-passwd#';
     let prompts = 0;
     let args = ['-S', '-p', prompt];
+    cmd = cmd || [];
+    cmd = cmd.slice(0);
     [].push.apply(args, cmd);
     let path = process.env['PATH'].split(':');
     let sudoBin = inpathSync('sudo', path);
@@ -138,7 +142,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
 
     let child: ChildProcess = me.spawnShellCommandAsync(args, {}, cbStatusOrFinal, cbFinal);
 
-    if(!child){
+    if (!child) {
       //In this case spawnShellCommandAsync should handle the error callbacks
       return;
     }
@@ -167,7 +171,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             me.cachedPassword = null;
           }
           let loginMessage = 'sudo requires your password: '
-          switch(prompts){
+          switch (prompts) {
             case 2:
               loginMessage = `hmmm, could you try that again: `;
               break;
@@ -185,6 +189,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       });
     });
     return child;
+  }
+
+  private copyStringArray(cmd: string[]) {
+    return cmd.slice(0);
   }
 }
 
