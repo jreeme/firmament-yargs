@@ -10,7 +10,7 @@ const psTree = require('ps-tree');
 //noinspection JSUnusedGlobalSymbols
 @injectable()
 export class SpawnImpl extends ForceErrorImpl implements Spawn {
-  cachedPassword: string = '][nform0';
+  cachedPassword: string;
 
   commandUtil: CommandUtil;
 
@@ -47,6 +47,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                          options: SpawnOptions = null,
                          cbStatusOrFinal: (err: Error, result: string)=>void = null,
                          cbFinal: (err: Error, result: string)=>void = null) {
+    let me = this;
     let childProcess: ChildProcess;
     //Do some callback juggling. If they don't specify cbFinal the cbStatus will be the
     //presumptive cbFinal. If neither callback is specified the user will need to deal
@@ -63,7 +64,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         cbStatusOrFinal = null;
       }
     }
-    if (this.checkForceError('spawnShellCommandAsync', cbFinal)) {
+    if (me.checkForceError('spawnShellCommandAsync', cbFinal)) {
       return;
     }
     try {
@@ -71,7 +72,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       options = options || {};
       options.stdio = options.stdio || 'pipe';
       options.cwd = options.cwd || __dirname;
-      this.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
+      me.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
       let command = cmd.shift();
       let result = '';
       childProcess = spawn(command, cmd, options);
@@ -84,19 +85,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
           }
         });
         childProcess.on('exit', function (code: number, signal: string) {
-          if (cbFinal) {
-            if (code !== null) {
-              if (code !== 0) {
-                cbFinal(new Error(`spawn error: exit code ${code}`), result);
-              }
-              else {
-                cbFinal(null, result);
-              }
-            } else {
-              cbFinal(new Error(`child process received signal: ${signal}`), result);
-            }
-            cbFinal = null;
-          }
+          cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
+        });
+        childProcess.on('close', function (code: number, signal: string) {
+          cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
         });
         childProcess.on('error', function (code: any) {
           if (cbFinal) {
@@ -111,6 +103,26 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return childProcess;
   }
 
+  private childCloseOrExit(code: number,
+                           signal: string,
+                           result: string,
+                           cbFinal: (err: Error, result: string)=>void): (err: Error, result: string)=>void {
+    if (cbFinal) {
+      if (code !== null) {
+        if (code !== 0) {
+          cbFinal(new Error(`spawn error: exit code ${code}`), result);
+        }
+        else {
+          cbFinal(null, result);
+        }
+      } else {
+        cbFinal(new Error(`child process received signal: ${signal}`), result);
+      }
+      cbFinal = null;
+    }
+    return cbFinal;
+  }
+
   sudoSpawnAsync(cmd: string[],
                  options: SpawnOptions = null,
                  cbStatusOrFinal: (err: Error, result: string)=>void = null,
@@ -120,46 +132,32 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let prompts = 0;
     let args = ['-S', '-p', prompt];
     [].push.apply(args, cmd);
-    // The binary is the first non-dashed parameter to sudo
-    let bin = cmd.filter(function (i) {
-      return i.indexOf('-') !== 0;
-    })[0];
-    let spawnOptions = {
-      stdio: 'pipe'
-    };
     let path = process.env['PATH'].split(':');
     let sudoBin = inpathSync('sudo', path);
-    let child: ChildProcess = spawn(sudoBin, args, spawnOptions);
-    function waitForStartup2(err, children:any[]) {
+    args.unshift(sudoBin);
+
+    let child: ChildProcess = me.spawnShellCommandAsync(args, {}, cbStatusOrFinal, cbFinal);
+
+    if(!child){
+      //In this case spawnShellCommandAsync should handle the error callbacks
+      return;
+    }
+
+    function waitForStartup(err, children: any[]) {
       if (err) {
-        throw new Error(`Couldn't start ` + bin);
+        throw new Error(`Error spawning process`);
       }
       if (children && children.length) {
-        child.emit('started');
+        child.stderr.removeAllListeners();
       } else {
         setTimeout(function () {
-          psTree(child.pid, waitForStartup2);
-        }, 100);
-      }
-    }
-    psTree(child.pid, waitForStartup2);
-    // Wait for the sudo:d binary to start up
-/*    function waitForStartup(err, pid) {
-      if (err) {
-        throw new Error(`Couldn't start ` + bin);
-      }
-      if (pid) {
-        child.emit('started');
-      } else {
-        setTimeout(function () {
-          pidof(bin, waitForStartup);
+          psTree(child.pid, waitForStartup);
         }, 100);
       }
     }
 
-    pidof(bin, waitForStartup);
-    */
-    // FIXME: Remove this handler when the child has successfully started
+    psTree(child.pid, waitForStartup);
+
     child.stderr.on('data', function (data) {
       let lines = data.toString().trim().split('\n');
       lines.forEach(function (line) {
@@ -168,11 +166,19 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             // The previous entry must have been incorrect, since sudo asks again.
             me.cachedPassword = null;
           }
+          let loginMessage = 'sudo requires your password: '
+          switch(prompts){
+            case 2:
+              loginMessage = `hmmm, could you try that again: `;
+              break;
+            case 3:
+              loginMessage = `still not too good ... third time's a charm: `;
+              break;
+          }
           if (me.cachedPassword) {
             child.stdin.write(me.cachedPassword + '\n');
           } else {
-            me.cachedPassword = me.cachedPassword
-              || readlineSync.question('sudo requires your password: ', {hideEchoBack: true});
+            me.cachedPassword = readlineSync.question(loginMessage, {hideEchoBack: true});
             child.stdin.write(me.cachedPassword + '\n');
           }
         }

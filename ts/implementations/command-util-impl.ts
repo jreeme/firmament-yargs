@@ -20,8 +20,11 @@ export class CommandUtilImpl implements CommandUtil {
   private dummyLog(msg: string) {
   }
 
-  private stdoutLog(msg: string){
-    //console.log(msg);
+  stdoutWrite(msg: string) {
+    process.stdout.write(msg);
+  }
+
+  private stdoutLog(msg: string) {
     process.stdout.write(`${msg}\n`);
   }
 

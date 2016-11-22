@@ -13,5 +13,6 @@ export interface CommandUtil {
                  result?: any): boolean;
   log(msg: string);
   error(msg: string);
+  stdoutWrite(msg:string);
   quiet:boolean;
 }

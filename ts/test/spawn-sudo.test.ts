@@ -3,7 +3,7 @@ import kernel from '../inversify.config';
 import {expect} from 'chai';
 import {Spawn} from "../interfaces/spawn";
 import path = require('path');
-describe('SpawnAsync (no console out)', function () {
+describe('Sudo', function () {
   let spawn: Spawn;
   beforeEach(done => {
     spawn = kernel.get<Spawn>('Spawn');
@@ -17,7 +17,7 @@ describe('SpawnAsync (no console out)', function () {
   describe('spawnShellCommandAsync (force error)', () => {
     it('should report error', done => {
       expect(spawn).to.not.equal(null);
-      //spawn.forceError = true;
+      spawn.forceError = true;
       spawn.sudoSpawnAsync(['node', '/home/jreeme/src/firmament-yargs/js/test/test-00.js'], null, (err, result) => {
         expect(result).to.equal(null);
         expect(err).to.not.equal(null);
