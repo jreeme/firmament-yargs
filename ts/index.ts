@@ -6,6 +6,8 @@ export * from './interfaces/spawn';
 export * from './interfaces/command-line';
 export * from './interfaces/progress-bar';
 export * from './interfaces/positive';
+export * from './interfaces/force-error';
+export * from './implementations/force-error-impl';
 import kernel from "./inversify.config";
 export {kernel};
 
