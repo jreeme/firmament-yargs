@@ -3,6 +3,7 @@ import {Spawn} from '../interfaces/spawn';
 import {SpawnOptions, ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
 import {CommandUtil} from '../interfaces/command-util';
 import {ForceErrorImpl} from "./force-error-impl";
+import {SpawnOptions2} from "../custom-typings";
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
 const pidof = require('pidof');
@@ -20,7 +21,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
   }
 
   public spawnShellCommandSync(cmd: string[],
-                               options: SpawnOptions = null,
+                               options: SpawnOptions2 = null,
                                cb: (err: Error,
                                     spawnSyncReturns: SpawnSyncReturns<Buffer>)=>void = null): SpawnSyncReturns<Buffer> {
     cb = this.checkCallback(cb);
@@ -31,9 +32,9 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     try {
       cmd = cmd || [];
       cmd = cmd.slice(0);
-      options = options || {};
+      options = options || {preSpawnMessage: '', postSpawnMessage: '', showDiagnostics: false};
       options.stdio = options.stdio || 'inherit';
-      options.cwd = options.cwd || __dirname;
+      options.cwd = process.cwd() || __dirname;
       this.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
       let command = cmd.shift();
       child = spawnSync(command, cmd, options);
@@ -45,7 +46,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
   }
 
   spawnShellCommandAsync(cmd: string[],
-                         options: SpawnOptions = null,
+                         options: SpawnOptions2 = null,
                          cbStatusOrFinal: (err: Error, result: string)=>void = null,
                          cbFinal: (err: Error, result: string)=>void = null) {
     let me = this;
@@ -72,9 +73,19 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       cmd = cmd || [];
       cmd = cmd.slice(0);
       options = options || {};
+      options.preSpawnMessage = options.preSpawnMessage || '';
+      options.postSpawnMessage = options.postSpawnMessage || '';
+      options.showDiagnostics = options.showDiagnostics || false;
+      options.suppressOutput = options.suppressOutput || false;
       options.stdio = options.stdio || 'pipe';
-      options.cwd = options.cwd || __dirname;
-      me.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
+      options.cwd = process.cwd() || __dirname;
+      if (options.showDiagnostics) {
+        //Meager diagnostics for now. Maybe bolster later.
+        me.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
+      }
+      if (options.preSpawnMessage && cbStatusOrFinal) {
+        cbStatusOrFinal(null, options.preSpawnMessage);
+      }
       let command = cmd.shift();
       let result = '';
       childProcess = spawn(command, cmd, options);
@@ -82,14 +93,22 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       if (cbFinal) {
         childProcess.stdout.on('data', function (data) {
           result += data.toString();
-          if (cbStatusOrFinal) {
+          if (cbStatusOrFinal && !options.suppressOutput) {
             cbStatusOrFinal(null, data.toString());
           }
         });
         childProcess.on('exit', function (code: number, signal: string) {
+          if (options.postSpawnMessage && cbStatusOrFinal) {
+            cbStatusOrFinal(null, options.postSpawnMessage);
+            cbStatusOrFinal = null;
+          }
           cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
         });
         childProcess.on('close', function (code: number, signal: string) {
+          if (options.postSpawnMessage && cbStatusOrFinal) {
+            cbStatusOrFinal(null, options.postSpawnMessage);
+            cbStatusOrFinal = null;
+          }
           cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
         });
         childProcess.on('error', function (code: any) {
@@ -126,7 +145,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
   }
 
   sudoSpawnAsync(cmd: string[],
-                 options: SpawnOptions = null,
+                 options: SpawnOptions2 = null,
                  cbStatusOrFinal: (err: Error, result: string)=>void = null,
                  cbFinal: (err: Error, result: string)=>void = null) {
     let me = this;
@@ -140,7 +159,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let sudoBin = inpathSync('sudo', path);
     args.unshift(sudoBin);
 
-    let child: ChildProcess = me.spawnShellCommandAsync(args, {}, cbStatusOrFinal, cbFinal);
+    //TODO: Set default options
+    let child: ChildProcess = me.spawnShellCommandAsync(args, options, cbStatusOrFinal, cbFinal);
 
     if (!child) {
       //In this case spawnShellCommandAsync should handle the error callbacks
@@ -170,15 +190,11 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             // The previous entry must have been incorrect, since sudo asks again.
             me.cachedPassword = null;
           }
-          let loginMessage = 'sudo requires your password: '
-          switch (prompts) {
-            case 2:
-              loginMessage = `hmmm, could you try that again: `;
-              break;
-            case 3:
-              loginMessage = `still not too good ... third time's a charm: `;
-              break;
-          }
+          let username = require('username').sync();
+          let loginMessage = (prompts > 1)
+            ? `Sorry, try again.\n[sudo] password for ${username}: `
+            : `[sudo] password for ${username}: `;
+
           if (me.cachedPassword) {
             child.stdin.write(me.cachedPassword + '\n');
           } else {

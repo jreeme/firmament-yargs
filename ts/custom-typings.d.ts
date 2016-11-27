@@ -1,4 +1,7 @@
 import {SpawnOptions} from 'child_process';
 export interface SpawnOptions2 extends SpawnOptions{
-  redirectedToSudo:boolean
+  preSpawnMessage?:string;
+  postSpawnMessage?:string;
+  showDiagnostics?:boolean;
+  suppressOutput?:boolean;
 }

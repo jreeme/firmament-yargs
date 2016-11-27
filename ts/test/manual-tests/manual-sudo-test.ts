@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import kernel from '../inversify.config';
-import {Spawn} from "../interfaces/spawn";
+import kernel from '../../inversify.config';
+import {Spawn} from "../../interfaces/spawn";
 let spawn = kernel.get<Spawn>('Spawn');
 
 //noinspection JSUnusedLocalSymbols

@@ -2,8 +2,8 @@ import 'reflect-metadata';
 import kernel from '../inversify.config';
 import {expect} from 'chai';
 import {Spawn} from "../interfaces/spawn";
-//import {ChildProcess, SpawnOptions} from 'child_process';
 import path = require('path');
+//"outDir": "/home/jreeme/src/firmament-bash/node_modules/firmament-yargs/js",
 describe('SpawnAsync (no console out)', function () {
   let spawn: Spawn;
   beforeEach(done => {
@@ -23,18 +23,6 @@ describe('SpawnAsync (no console out)', function () {
         expect(result).to.equal(null);
         expect(err).to.not.equal(null);
         expect(err.message).to.equal('force error: spawnShellCommandAsync');
-      });
-      done();
-    });
-  });
-  describe('spawnShellCommandAsync (unexpected error)', () => {
-    it('should report error', done => {
-      expect(spawn).to.not.equal(null);
-      spawn.commandUtil = null;//This would be very unusual
-      spawn.spawnShellCommandAsync([], null, (err, result) => {
-        expect(result).to.equal(null);
-        expect(err).to.not.equal(null);
-        expect(err.message).to.equal(`Cannot read property 'log' of null`);
       });
       done();
     });
@@ -66,6 +54,7 @@ describe('SpawnAsync (no console out)', function () {
 describe('SpawnAsync (with console out)', function () {
   let spawn: Spawn;
   const testScriptName = path.resolve(__dirname, 'test-00.js');
+  const testErrorScriptName = path.resolve(__dirname, 'test-error-00.js');
   let cmd: string[];
   beforeEach(done => {
     spawn = kernel.get<Spawn>('Spawn');
@@ -199,4 +188,24 @@ describe('SpawnAsync (with console out)', function () {
         });
     });
   });
+  describe('spawnShellCommandSync (valid command {non-zero exit code},empty options,status callback,final callback)', () => {
+    it('should execute script and return', done => {
+      expect(spawn).to.not.equal(null);
+      let accumResult = '';
+      cmd = ['/usr/bin/env', 'node', testErrorScriptName];
+      spawn.spawnShellCommandAsync(cmd, {},
+        (err, result) => {
+          expect(err).to.equal(null);
+          accumResult += result;
+        },
+        (err, result) => {
+          expect(err).to.not.equal(null);
+          expect(err.message).to.equal('spawn error: exit code 3');
+          expect(result).to.equal(accumResult);
+          expect(result).to.equal('test me: 0\ntest me: 1\n');
+          done();
+        });
+    });
+  });
+  //TODO: Write unit tests to exercise SpawnOptions2 interface
 });
