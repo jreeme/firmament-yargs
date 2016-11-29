@@ -21,25 +21,31 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
   }
 
   spawnShellCommandPipelineAsync(cmdArray: string[][],
-                                 options?: SpawnOptions2,
+                                 optionsArray?: SpawnOptions2[],
                                  cbStatusOrFinal?: (err: Error, result: string)=>void,
                                  cbFinal?: (err: Error, result: string)=>void): ChildProcess {
     let lclCmdArray = cmdArray.slice(0);
+    let lclOptionsArray = optionsArray.slice(0);
     let cmd = lclCmdArray.pop().slice(0);
-    let childProcess = this.spawnShellCommandAsync(cmd, options, cbStatusOrFinal, cbFinal);
+    let childProcess = this.spawnShellCommandAsync(cmd, lclOptionsArray.pop(), cbStatusOrFinal, cbFinal);
     let proc = childProcess;
     while (cmd = lclCmdArray.pop()) {
       cmd = cmd.slice(0);
       let prevStdin = proc.stdin;
-      proc = this.spawnShellCommandAsync(cmd);
-      //proc = spawn(cmd.shift(), cmd);
+      proc = this.spawnShellCommandAsync(cmd,
+        lclOptionsArray.pop(),
+        cbStatusOrFinal,
+        (err, results) => {
+          process.stderr.write(results);
+        }
+      );
       proc.stdout.pipe(prevStdin);
     }
     return childProcess;
   }
 
   sudoSpawnPipelineAsync(cmdArray: string[][],
-                         options?: SpawnOptions2,
+                         optionsArray?: SpawnOptions2[],
                          cbStatusOrFinal?: (err: Error, result: string)=>void,
                          cbFinal?: (err: Error, result: string)=>void): ChildProcess {
     return undefined;

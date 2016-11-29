@@ -9,11 +9,11 @@ export interface Spawn extends ForceError {
    options?: SpawnOptions2,
    cb?: (err: Error, spawnSyncReturns: SpawnSyncReturns<Buffer>)=>void): SpawnSyncReturns<Buffer>;*/
   spawnShellCommandPipelineAsync(cmdArray: string[][],
-                                 options?: SpawnOptions2,
+                                 optionsArray?: SpawnOptions2[],
                                  cbStatusOrFinal?: (err: Error, result: string)=>void,
                                  cbFinal?: (err: Error, result: string)=>void): ChildProcess;
   sudoSpawnPipelineAsync(cmdArray: string[][],
-                         options?: SpawnOptions2,
+                         optionsArray?: SpawnOptions2[],
                          cbStatusOrFinal?: (err: Error, result: string)=>void,
                          cbFinal?: (err: Error, result: string)=>void): ChildProcess;
   spawnShellCommandAsync(cmd: string[],
