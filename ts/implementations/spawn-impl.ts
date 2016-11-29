@@ -1,6 +1,6 @@
 import {injectable, inject} from "inversify";
 import {Spawn} from '../interfaces/spawn';
-import {SpawnOptions, ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
+import {ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
 import {CommandUtil} from '../interfaces/command-util';
 import {ForceErrorImpl} from "./force-error-impl";
 import {SpawnOptions2} from "../custom-typings";
@@ -20,29 +20,29 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     this.commandUtil = _commandUtil;
   }
 
-  public spawnShellCommandSync(cmd: string[],
-                               options: SpawnOptions2 = null,
-                               cb: (err: Error,
-                                    spawnSyncReturns: SpawnSyncReturns<Buffer>)=>void = null): SpawnSyncReturns<Buffer> {
-    cb = this.checkCallback(cb);
-    let child: SpawnSyncReturns<Buffer>;
-    if (this.checkForceError('spawnShellCommandSync', cb)) {
-      return;
-    }
-    try {
-      cmd = cmd || [];
+  spawnShellCommandPipelineAsync(cmdArray: string[][],
+                                 options?: SpawnOptions2,
+                                 cbStatusOrFinal?: (err: Error, result: string)=>void,
+                                 cbFinal?: (err: Error, result: string)=>void): ChildProcess {
+    let lclCmdArray = cmdArray.slice(0);
+    let cmd = lclCmdArray.pop().slice(0);
+    let childProcess = this.spawnShellCommandAsync(cmd, options, cbStatusOrFinal, cbFinal);
+    let proc = childProcess;
+    while (cmd = lclCmdArray.pop()) {
       cmd = cmd.slice(0);
-      options = options || {preSpawnMessage: '', postSpawnMessage: '', showDiagnostics: false};
-      options.stdio = options.stdio || 'inherit';
-      options.cwd = process.cwd() || __dirname;
-      this.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
-      let command = cmd.shift();
-      child = spawnSync(command, cmd, options);
-      cb(child.error, child);
-    } catch (err) {
-      cb(err, null);
+      let prevStdin = proc.stdin;
+      proc = this.spawnShellCommandAsync(cmd);
+      //proc = spawn(cmd.shift(), cmd);
+      proc.stdout.pipe(prevStdin);
     }
-    return child;
+    return childProcess;
+  }
+
+  sudoSpawnPipelineAsync(cmdArray: string[][],
+                         options?: SpawnOptions2,
+                         cbStatusOrFinal?: (err: Error, result: string)=>void,
+                         cbFinal?: (err: Error, result: string)=>void): ChildProcess {
+    return undefined;
   }
 
   spawnShellCommandAsync(cmd: string[],
@@ -207,8 +207,32 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return child;
   }
 
-  private copyStringArray(cmd: string[]) {
-    return cmd.slice(0);
-  }
 }
+
+/*
+ public spawnShellCommandSync(cmd: string[],
+ options: SpawnOptions2 = null,
+ cb: (err: Error,
+ spawnSyncReturns: SpawnSyncReturns<Buffer>)=>void = null): SpawnSyncReturns<Buffer> {
+ cb = this.checkCallback(cb);
+ let child: SpawnSyncReturns<Buffer>;
+ if (this.checkForceError('spawnShellCommandSync', cb)) {
+ return;
+ }
+ try {
+ cmd = cmd || [];
+ cmd = cmd.slice(0);
+ options = options || {preSpawnMessage: '', postSpawnMessage: '', showDiagnostics: false};
+ options.stdio = options.stdio || 'inherit';
+ options.cwd = process.cwd() || __dirname;
+ this.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
+ let command = cmd.shift();
+ child = spawnSync(command, cmd, options);
+ cb(child.error, child);
+ } catch (err) {
+ cb(err, null);
+ }
+ return child;
+ }
+ */
 

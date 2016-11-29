@@ -18,7 +18,7 @@ describe('SpawnSync (no console out)', function () {
     spawn = null;
     done();
   });
-  describe('spawnShellCommandSync (force error)', () => {
+/*  describe('spawnShellCommandSync (force error)', () => {
     it('should report error', done => {
       expect(spawn).to.not.equal(null);
       spawn.forceError = true;
@@ -113,7 +113,7 @@ describe('SpawnSync (with console out)', function () {
         done();
       });
     });
-  });
+  });*/
 });
 
 function getStdoutOptions(): SpawnOptions {
