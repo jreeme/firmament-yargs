@@ -78,7 +78,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       options.showDiagnostics = options.showDiagnostics || false;
       options.suppressOutput = options.suppressOutput || false;
       options.stdio = options.stdio || 'pipe';
-      options.cwd = process.cwd() || __dirname;
+      options.cwd = options.cwd || process.cwd();
       if (options.showDiagnostics) {
         //Meager diagnostics for now. Maybe bolster later.
         me.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
