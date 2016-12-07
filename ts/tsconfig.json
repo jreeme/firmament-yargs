@@ -19,7 +19,6 @@
     "types": [
       "chai",
       "inversify",
-      "jsnlog",
       "lodash",
       "mocha",
       "node",
