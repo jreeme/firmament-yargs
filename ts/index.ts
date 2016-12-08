@@ -5,6 +5,7 @@ export * from './interfaces/command-util';
 export * from './interfaces/spawn';
 export * from './interfaces/command-line';
 export * from './interfaces/progress-bar';
+export * from './interfaces/progress-task';
 export * from './interfaces/positive';
 export * from './interfaces/force-error';
 export * from './implementations/force-error-impl';

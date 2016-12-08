@@ -1,6 +1,6 @@
 {
   "name": "firmament-yargs",
-  "version": "0.2.22",
+  "version": "0.2.24",
   "description": "Typescript classes for building CLI node applications",
   "main": "js/index.js",
   "typings": "js/index",
@@ -41,6 +41,7 @@
     "inversify": "^3.0.0-beta.1",
     "lodash": "^4.8.2",
     "nested-yargs": "^1.0.7",
+    "node-status": "^1.0.0",
     "pidof": "^1.0.2",
     "positive": "^1.0.9",
     "ps-tree": "^1.1.0",

@@ -1,30 +1,75 @@
 import {ProgressBar} from "../interfaces/progress-bar";
-import {injectable} from 'inversify';
-/*const multimeter = require('pm2-multimeter');
- const multi = multimeter(process);*/
+import {injectable, inject} from 'inversify';
+import {CommandUtil} from "../interfaces/command-util";
+import kernel from "../inversify.config";
+import {ProgressTask} from "../interfaces/progress-task";
+import * as _ from 'lodash';
+
+const status = require('node-status');
+
 @injectable()
 export class ProgressBarImpl implements ProgressBar {
-/*  private config = {
-    width: 40,
-    before: '[',
-    after: ']',
-    solid: {background: 'blue', foreground: 'white', text: '|'},
-    empty: {background: null, foreground: null, text: ' '}
-  };
-  private progressBarMap = {};
-  private offset: number = 0;*/
+  private commandUtil: CommandUtil;
+  private tasks: ProgressTask[] = [];
+  private started: boolean = false;
+  private patternBase: string = '{uptime.green} {spinner.cyan}';
+  private pattern: string = '';
 
-  public showProgressForTask(id: string, status: string, current: number, total: number) {
-    //TODO: Quick and dirty implementation. Try to get 'pm2-multimeter' working someday.
-    let msg = '> ' + current.toLocaleString() + ' : ' + total.toLocaleString();// + id);
-    console.log(msg);
-    /*    let bar = this.progressBarMap[id];
-     if (!bar) {
-     multi.offset++;
-     this.progressBarMap[id] = bar = multi.rel(1, this.offset++, this.config);
-     console.log('> ' + current.toLocaleString() + ' : ' + total.toLocaleString());// + id);
-     }
-     status = ' ** ' + id + ': ' + status + '                    ';
-     bar.ratio(current, total, status);*/
+  constructor(@inject('CommandUtil')_commandUtil: CommandUtil) {
+    this.commandUtil = _commandUtil;
+  }
+
+  public showProgressForTask(id: string, msg: string, current: number, total: number) {
+    const console = status.console();
+
+    let task = _.find(this.tasks, ['id', id]);
+    if (!task) {
+      if (current >= total) {
+        return;
+      }
+      task = kernel.get<ProgressTask>('ProgressTask');
+      this.tasks.push(task);
+      task.id = id;
+      task.msg = msg;
+      task.statusItem = status.addItem(id, {
+        max: total,
+        count: current
+      });
+    } else {
+      if (current >= total) {
+        status.removeItem(task.id);
+        _.remove(this.tasks, t => {
+          return task.id == t.id;
+        });
+      } else {
+        task.statusItem.count = current;
+        task.statusItem.max = total;
+      }
+    }
+    this.render();
+  }
+
+  private render() {
+    let pattern = this.patternBase;
+    if(!this.tasks.length){
+      status.stop();
+      status.clear();
+      this.started = false;
+      return;
+    }
+    this.tasks.forEach(task => {
+      pattern += ` | ${task.msg} {${task.id}.green.bar}`;
+    });
+    if (this.started) {
+      if (this.pattern == pattern) {
+        return;
+      }
+      status.setPattern(this.pattern = pattern);
+    } else {
+      this.started = true;
+      status.start({
+        pattern
+      });
+    }
   }
 }
