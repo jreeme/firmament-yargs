@@ -14,5 +14,6 @@ export interface CommandUtil {
   log(msg: string);
   error(msg: string);
   stdoutWrite(msg:string);
+  getConfigFilePath(inputPath:string, extension?:string);
   quiet:boolean;
 }

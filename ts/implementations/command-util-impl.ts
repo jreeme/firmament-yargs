@@ -1,5 +1,6 @@
 import {injectable} from "inversify";
 import {CommandUtil} from "../interfaces/command-util";
+import path = require('path');
 
 interface LogConsole {
   log(msg: string): void;
@@ -95,6 +96,17 @@ export class CommandUtilImpl implements CommandUtil {
       cb(err, result);
     }
     return !!err;
+  }
+
+  getConfigFilePath(filename: string, extension: string = '.json') {
+    let regex = new RegExp('(.*)\\' + extension + '$', 'i');
+    let cwd = process.cwd();
+    if (regex.test(filename)) {
+      filename = filename.replace(regex, '$1' + extension);
+    } else {
+      filename = filename + extension;
+    }
+    return path.resolve(cwd, filename);
   }
 }
 
