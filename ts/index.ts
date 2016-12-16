@@ -1,5 +1,6 @@
 //"outDir": "/home/jreeme/tmp/firmament-docker/node_modules/firmament-yargs/js",
 import 'reflect-metadata';//Need these globals for inversify
+export * from './interfaces/postal';
 export * from './interfaces/command';
 export * from './interfaces/command-util';
 export * from './interfaces/spawn';

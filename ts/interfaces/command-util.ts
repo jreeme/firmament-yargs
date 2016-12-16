@@ -1,3 +1,4 @@
+
 export interface CommandUtil {
   returnErrorStringOrMessage(err: Error, message: string);
   logErrors(errs: Error[], writeErrorToConsole?: boolean): string[];
@@ -15,5 +16,5 @@ export interface CommandUtil {
   error(msg: string);
   stdoutWrite(msg:string);
   getConfigFilePath(inputPath:string, extension?:string);
-  quiet:boolean;
 }
+

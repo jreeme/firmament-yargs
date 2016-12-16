@@ -11,7 +11,6 @@ describe('SpawnSync (no console out)', function () {
   let spawn: Spawn;
   beforeEach(done => {
     spawn = kernel.get<Spawn>('Spawn');
-    spawn.commandUtil.quiet = true;
     done();
   });
   afterEach(done => {

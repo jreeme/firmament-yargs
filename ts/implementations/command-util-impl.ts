@@ -1,6 +1,7 @@
-import {injectable} from "inversify";
+import {injectable, inject} from "inversify";
 import {CommandUtil} from "../interfaces/command-util";
 import path = require('path');
+import {IPostal} from "../interfaces/postal";
 
 interface LogConsole {
   log(msg: string): void;
@@ -8,30 +9,44 @@ interface LogConsole {
 }
 @injectable()
 export class CommandUtilImpl implements CommandUtil {
+  private suppressConsoleOutput = false;
+  private postal: IPostal;
   private _console: LogConsole = {
-    log: this.stdoutLog,
-    error: this.stdoutLog
+    log: this.stdoutLog.bind(this),
+    error: this.stderrLog.bind(this)
   };
 
-  constructor() {
-    this.quiet = false;
+  constructor(@inject('IPostal')_postal: IPostal) {
+    this.postal = _postal;
+    this.postal.subscribe({
+      channel: 'CommandUtil',
+      topic: 'SuppressConsoleOutput',
+      callback: (data) => {
+        this.suppressConsoleOutput = data.suppressConsoleOutput;
+      }
+    });
   }
 
-  //noinspection JSUnusedLocalSymbols
-  private dummyLog(msg: string) {
+  stderrWrite(msg: string) {
+    if (this.suppressConsoleOutput) {
+      return;
+    }
+    process.stderr.write(msg);
   }
 
   stdoutWrite(msg: string) {
+    if (this.suppressConsoleOutput) {
+      return;
+    }
     process.stdout.write(msg);
   }
 
-  private stdoutLog(msg: string) {
-    process.stdout.write(`${msg}\n`);
+  private stderrLog(msg: string) {
+    this.stderrWrite(`${msg}\n`);
   }
 
-  set quiet(beQuiet: boolean) {
-    this._console.log = (beQuiet) ? this.dummyLog : this.stdoutLog;
-    this._console.error = (beQuiet) ? this.dummyLog : this.stdoutLog;
+  private stdoutLog(msg: string) {
+    this.stdoutWrite(`${msg}\n`);
   }
 
   returnErrorStringOrMessage(err: Error, message: string) {
