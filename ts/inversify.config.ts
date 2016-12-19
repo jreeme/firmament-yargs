@@ -26,6 +26,5 @@ kernel.bind<CommandLine>('CommandLine').to(CommandLineImpl);
 kernel.bind<NestedYargs>('NestedYargs').to(NestedYargsImpl);
 kernel.bind<Command>('CommandImpl').to(CommandImpl);
 kernel.bind<Spawn>('Spawn').to(SpawnImpl);
-kernel.bind<IPostal>('IPostal').to(PostalImpl);
 kernel.bind<Positive>('Positive').to(PositiveImpl);
 export default kernel;

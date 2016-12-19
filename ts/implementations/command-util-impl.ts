@@ -2,42 +2,80 @@ import {injectable, inject} from "inversify";
 import {CommandUtil} from "../interfaces/command-util";
 import path = require('path');
 import {IPostal} from "../interfaces/postal";
+import {ProgressBar} from "../interfaces/progress-bar";
+import {LogConsole} from "../interfaces/log-console";
 
-interface LogConsole {
-  log(msg: string): void;
-  error(msg: string): void;
-}
+const blackHoleStream = new (require('black-hole-stream'))();
+const fs = require('fs');
+
 @injectable()
 export class CommandUtilImpl implements CommandUtil {
-  private suppressConsoleOutput = false;
   private postal: IPostal;
+  private progressBar: ProgressBar;
   private _console: LogConsole = {
     log: this.stdoutLog.bind(this),
+    info: this.stdoutLog.bind(this),
+    warn: this.stdoutLog.bind(this),
     error: this.stderrLog.bind(this)
   };
 
-  constructor(@inject('IPostal')_postal: IPostal) {
+  private exitHandler(options, err: Error) {
+    if (options.cleanup) {
+    }
+    if (err) {
+      if (err && err.message) {
+        this.stderrLog(err.message)
+      }
+    }
+    if (options.exit) {
+      process.exit();
+    }
+  }
+
+  private registerProcessManagementEvents() {
+    process.stdin.resume();
+    process.on('exit', this.exitHandler.bind(this, {cleanup: true}));
+    process.on('SIGINT', this.exitHandler.bind(this, {exit: true}));
+    process.on('uncaughtException', this.exitHandler.bind(this, {exit: true}));
+  }
+
+  constructor(@inject('IPostal')_postal: IPostal,
+              @inject('ProgressBar')_progressBar: ProgressBar) {
+    this.registerProcessManagementEvents();
     this.postal = _postal;
+    this.progressBar = _progressBar;
+    const cacheStdoutWrite = process.stdout.write;
+    const cacheStderrWrite = process.stderr.write;
     this.postal.subscribe({
       channel: 'CommandUtil',
       topic: 'SuppressConsoleOutput',
       callback: (data) => {
-        this.suppressConsoleOutput = data.suppressConsoleOutput;
+        if (data.suppressConsoleOutput) {
+          process.stdout.write = process.stderr.write = blackHoleStream.write.bind(blackHoleStream);
+        } else {
+          process.stdout.write = cacheStdoutWrite;
+          process.stderr.write = cacheStderrWrite;
+        }
+      }
+    });
+    this.postal.subscribe({
+      channel: 'CommandUtil',
+      topic: 'ProgressBarStarted',
+      callback: (data) => {
+        let dataConsole: LogConsole = data.console;
+        this._console.log = dataConsole.log;
+        this._console.info = dataConsole.info;
+        this._console.warn = dataConsole.warn;
+        this._console.error = dataConsole.error;
       }
     });
   }
 
   stderrWrite(msg: string) {
-    if (this.suppressConsoleOutput) {
-      return;
-    }
     process.stderr.write(msg);
   }
 
   stdoutWrite(msg: string) {
-    if (this.suppressConsoleOutput) {
-      return;
-    }
     process.stdout.write(msg);
   }
 

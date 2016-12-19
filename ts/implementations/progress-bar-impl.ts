@@ -4,23 +4,39 @@ import {CommandUtil} from "../interfaces/command-util";
 import kernel from "../inversify.config";
 import {ProgressTask} from "../interfaces/progress-task";
 import * as _ from 'lodash';
+import {IPostal} from "../interfaces/postal";
 
 const status = require('node-status');
 
 @injectable()
 export class ProgressBarImpl implements ProgressBar {
-  private commandUtil: CommandUtil;
+  private postal: IPostal;
   private tasks: ProgressTask[] = [];
   private started: boolean = false;
   private patternBase: string = '{uptime.green} {spinner.cyan}';
   private pattern: string = '';
 
-  constructor(@inject('CommandUtil')_commandUtil: CommandUtil) {
-    this.commandUtil = _commandUtil;
+  constructor(@inject('IPostal')_postal: IPostal) {
+    this.postal = _postal;
+    this.postal.subscribe({
+      channel: 'ProgressBar',
+      topic: 'Stop',
+      callback: (data) => {
+        if(this.started){
+          status.stop();
+        }
+      }
+    });
   }
 
-  public showProgressForTask(id: string, msg: string, current: number, total: number) {
-    const console = status.console();
+  showProgressForTask(id: string, msg: string, current: number, total: number) {
+    this.postal.publish({
+      channel: 'CommandUtil',
+      topic: 'ProgressBarStarted',
+      data: {
+        console: status.console()
+      }
+    });
 
     let task = _.find(this.tasks, ['id', id]);
     if (!task) {
@@ -51,12 +67,6 @@ export class ProgressBarImpl implements ProgressBar {
 
   private render() {
     let pattern = this.patternBase;
-    if(!this.tasks.length){
-      status.stop();
-      status.clear();
-      this.started = false;
-      return;
-    }
     this.tasks.forEach(task => {
       pattern += ` | ${task.msg} {${task.id}.green.bar}`;
     });
