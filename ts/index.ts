@@ -15,3 +15,8 @@ export * from './custom-typings';
 import kernel from "./inversify.config";
 export {kernel};
 
+//HACK so tools can get version to sync the firmament ecosystem
+if(process.argv[2].toString() === '--version'){
+  console.log(require('../package.json').version);
+  process.exit();
+}
