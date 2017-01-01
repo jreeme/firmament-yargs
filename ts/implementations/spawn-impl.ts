@@ -51,103 +51,132 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return undefined;
   }
 
-  spawnShellCommandAsync(cmd: string[],
-                         options: SpawnOptions2 = null,
-                         cbStatusOrFinal: (err: Error, result: string)=>void = null,
-                         cbFinal: (err: Error, result: string)=>void = null) {
-    let me = this;
-    let childProcess: ChildProcess;
-    //Do some callback juggling. If they don't specify cbFinal the cbStatus will be the
-    //presumptive cbFinal. If neither callback is specified the user will need to deal
-    //with the returned child process object to get results from the process.
+  private validate_spawnShellCommandAsync_args(cmd: string[],
+                                               options: SpawnOptions2 = null,
+                                               cbStatus: (err: Error, result: string)=>void = null,
+                                               cbFinal: (err: Error, result: string)=>void = null) {
+    cmd = cmd || [];
+    //Make a copy of cmd
+    cmd = cmd.slice(0);
     if (typeof cbFinal !== 'function') {
-      if (typeof cbStatusOrFinal !== 'function') {
-        cbFinal = cbStatusOrFinal = null;
+      if (typeof cbStatus !== 'function') {
+        cbFinal = cbStatus = (err: Error, result: string) => {
+        };
       } else {
-        cbFinal = cbStatusOrFinal;
-        cbStatusOrFinal = null;
+        cbFinal = cbStatus;
+        cbStatus = (err: Error, result: string) => {
+        };
       }
     } else {
-      if (typeof cbStatusOrFinal !== 'function') {
-        cbStatusOrFinal = null;
+      if (typeof cbStatus !== 'function') {
+        cbStatus = (err: Error, result: string) => {
+        };
       }
     }
+    options = options || {};
+    options.preSpawnMessage = options.preSpawnMessage || '';
+    options.postSpawnMessage = options.postSpawnMessage || '';
+    options.showDiagnostics = options.showDiagnostics || false;
+    options.suppressStdErr = options.suppressStdErr || false;
+    options.suppressStdOut = options.suppressStdOut || false;
+    options.cacheStdErr = options.cacheStdErr || false;
+    options.cacheStdOut = options.cacheStdOut || false;
+    options.suppressFinalStats = options.suppressFinalStats || false;
+    options.stdio = options.stdio || 'pipe';
+    options.cwd = options.cwd || process.cwd();
+    return {cmd, options, cbStatus, cbFinal};
+  }
+
+  spawnShellCommandAsync(_cmd: string[],
+                         _options: SpawnOptions2 = null,
+                         _cbStatus: (err: Error, result: string)=>void = null,
+                         _cbFinal: (err: Error, result: string)=>void = null) {
+    let me = this;
+    let {cmd, options, cbStatus, cbFinal} =
+      me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal);
     if (me.checkForceError('spawnShellCommandAsync', cbFinal)) {
       return;
     }
+    let childProcess: ChildProcess;
     try {
-      cmd = cmd || [];
-      cmd = cmd.slice(0);
-      options = options || {};
-      options.preSpawnMessage = options.preSpawnMessage || '';
-      options.postSpawnMessage = options.postSpawnMessage || '';
-      options.showDiagnostics = options.showDiagnostics || false;
-      options.suppressOutput = options.suppressOutput || false;
-      options.stdio = options.stdio || 'pipe';
-      options.cwd = options.cwd || process.cwd();
-      if (options.showDiagnostics) {
-        //Meager diagnostics for now. Maybe bolster later.
-        me.commandUtil.log(`Running '${cmd}' @ '${options.cwd}'`);
-      }
-      if (options.preSpawnMessage && cbStatusOrFinal) {
-        cbStatusOrFinal(null, options.preSpawnMessage);
-      }
-      let command = cmd.shift();
-      let result = '';
-      childProcess = spawn(command, cmd, options);
-      //Don't attach events if there is no final callback
-      if (cbFinal) {
-        childProcess.stdout.on('data', function (data) {
-          result += data.toString();
-          if (cbStatusOrFinal && !options.suppressOutput) {
-            cbStatusOrFinal(null, data.toString());
-          }
-        });
-        childProcess.on('exit', function (code: number, signal: string) {
-          if (options.postSpawnMessage && cbStatusOrFinal) {
-            cbStatusOrFinal(null, options.postSpawnMessage);
-            cbStatusOrFinal = null;
-          }
-          cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
-        });
-        childProcess.on('close', function (code: number, signal: string) {
-          if (options.postSpawnMessage && cbStatusOrFinal) {
-            cbStatusOrFinal(null, options.postSpawnMessage);
-            cbStatusOrFinal = null;
-          }
-          cbFinal = me.childCloseOrExit(code, signal, result, cbFinal);
-        });
-        childProcess.on('error', function (code: any) {
-          if (cbFinal) {
-            cbFinal(new Error(`spawn error: exit code ${code.code}`), null);
-            cbFinal = null;
-          }
-        });
-      }
+      let command = cmd[0];
+      let args = cmd.slice(1);
+      let stdoutText = '';
+      let stderrText = '';
+      me.diagnosticTrace(`Running '${cmd}' @ '${options.cwd}'`, options);
+      SpawnImpl.reportStatus(cbStatus, options.preSpawnMessage);
+      childProcess = spawn(command, args, options);
+      childProcess.stderr.on('data', (dataChunk: Uint8Array) => {
+        if (options.suppressStdErr && !options.cacheStdErr) {
+          return;
+        }
+        let text = dataChunk.toString();
+        if (!options.suppressStdErr) {
+          cbStatus(new Error(text), text);
+        }
+        if (options.cacheStdErr) {
+          stderrText += text;
+        }
+      });
+      childProcess.stdout.on('data', (dataChunk: Uint8Array) => {
+        if (options.suppressStdOut && !options.cacheStdOut) {
+          return;
+        }
+        let text = dataChunk.toString();
+        if (!options.suppressStdOut) {
+          cbStatus(null, text);
+        }
+        if (options.cacheStdOut) {
+          stdoutText += text;
+        }
+      });
+      childProcess.on('error', (code: number) => {
+        cbFinal = SpawnImpl.childCloseOrExit(code, '', stdoutText, stderrText, options, cbStatus, cbFinal);
+      });
+      childProcess.on('exit', (code: number, signal: string) => {
+        cbFinal = SpawnImpl.childCloseOrExit(code, signal, stdoutText, stderrText, options, cbStatus, cbFinal);
+      });
+      childProcess.on('close', (code: number, signal: string) => {
+        cbFinal = SpawnImpl.childCloseOrExit(code, signal, stdoutText, stderrText, options, cbStatus, cbFinal);
+      });
     } catch (err) {
       cbFinal(err, null);
     }
     return childProcess;
   }
 
-  private childCloseOrExit(code: number,
-                           signal: string,
-                           result: string,
-                           cbFinal: (err: Error, result: string)=>void): (err: Error, result: string)=>void {
-    if (cbFinal) {
-      if (code !== null) {
-        if (code !== 0) {
-          cbFinal(new Error(`spawn error: exit code ${code}`), result);
-        }
-        else {
-          cbFinal(null, result);
-        }
-      } else {
-        cbFinal(new Error(`child process received signal: ${signal}`), result);
-      }
-      cbFinal = null;
+  private static reportStatus(cbStatus: (err: Error, status: string)=>void, status: string) {
+    if (!cbStatus || !status) {
+      return;
     }
-    return cbFinal;
+    cbStatus(null, status);
+  }
+
+  private diagnosticTrace(msg: string, options: SpawnOptions2) {
+    if (!options.showDiagnostics) {
+      return;
+    }
+    this.commandUtil.log(msg);
+  }
+
+  private static childCloseOrExit(code: number,
+                                  signal: string,
+                                  stdoutText: string,
+                                  stderrText: string,
+                                  options: SpawnOptions2,
+                                  cbStatus: (err: Error, result: string)=>void,
+                                  cbFinal: (err: Error, result: string)=>void): (err: Error, result: string)=>void {
+    if (cbFinal) {
+      SpawnImpl.reportStatus(cbStatus, options.postSpawnMessage);
+      let returnString = !options.suppressFinalStats
+        ? JSON.stringify({code, signal, stdoutText, stderrText}, undefined, 2)
+        : '';
+      let error = (code !== null && code !== 0)
+        ? new Error(returnString)
+        : null;
+      cbFinal(error, returnString);
+    }
+    return null;
   }
 
   sudoSpawnAsync(cmd: string[],
