@@ -2,7 +2,6 @@ import {injectable, inject} from "inversify";
 import {CommandUtil} from "../interfaces/command-util";
 import path = require('path');
 import {IPostal} from "../interfaces/postal";
-import {ProgressBar} from "../interfaces/progress-bar";
 import {LogConsole} from "../interfaces/log-console";
 
 const blackHoleStream = new (require('black-hole-stream'))();
@@ -10,8 +9,6 @@ const fs = require('fs');
 
 @injectable()
 export class CommandUtilImpl implements CommandUtil {
-  private postal: IPostal;
-  private progressBar: ProgressBar;
   private _console: LogConsole = {
     log: this.stdoutLog.bind(this),
     info: this.stdoutLog.bind(this),
@@ -39,11 +36,8 @@ export class CommandUtilImpl implements CommandUtil {
     process.on('uncaughtException', this.exitHandler.bind(this, {exit: true}));
   }
 
-  constructor(@inject('IPostal')_postal: IPostal,
-              @inject('ProgressBar')_progressBar: ProgressBar) {
+  constructor(@inject('IPostal') private postal: IPostal) {
     this.registerProcessManagementEvents();
-    this.postal = _postal;
-    this.progressBar = _progressBar;
     const cacheStdoutWrite = process.stdout.write;
     const cacheStderrWrite = process.stderr.write;
     this.postal.subscribe({
@@ -127,7 +121,7 @@ export class CommandUtilImpl implements CommandUtil {
     process.exit(exitCode);
   }
 
-  callbackIfError(cb: (err: Error, result: any)=>void,
+  callbackIfError(cb: (err: Error, result: any) => void,
                   err: Error = null,
                   result: any = null): boolean {
     if (this.logError(err)) {
@@ -141,7 +135,7 @@ export class CommandUtilImpl implements CommandUtil {
   }
 
   logAndCallback(msg: string,
-                 cb: (err: Error, result: any)=>void,
+                 cb: (err: Error, result: any) => void,
                  err: Error = null,
                  result: any = null): boolean {
     this._console.log(err ? err.message : msg);

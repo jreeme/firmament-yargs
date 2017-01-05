@@ -1,17 +1,14 @@
 import 'reflect-metadata';
 import kernel from '../../inversify.config';
-import {Spawn} from "../../interfaces/spawn";
 import {IPostal} from "../../interfaces/postal";
 import {CommandUtil} from "../../interfaces/command-util";
-import {ProgressTask} from "../../interfaces/progress-task";
 import {ProgressBar} from "../../interfaces/progress-bar";
-let spawn = kernel.get<Spawn>('Spawn');
 let postal = kernel.get<IPostal>('IPostal');
 let progressBar = kernel.get<ProgressBar>('ProgressBar');
 let commandUtil = kernel.get<CommandUtil>('CommandUtil');
 
 commandUtil.log('logging!!');
-commandUtil.error('erroring!!');
+commandUtil.error('error!!');
 postal.publish({
   channel: 'CommandUtil',
   topic: 'SuppressConsoleOutput',
@@ -20,7 +17,7 @@ postal.publish({
   }
 });
 commandUtil.log('****logging!!');
-commandUtil.error('****erroring!!');
+commandUtil.error('****error!!');
 let count = 0;
 setTimeout(() => {
   postal.publish({
@@ -43,7 +40,7 @@ setInterval(() => {
 }, 500);
 /*postal.subscribe({
  channel: 'hello',
- topic: 'muffLuvin',
+ topic: 'luvin',
  callback: (data, env) => {
  let d = data;
  }
@@ -51,7 +48,7 @@ setInterval(() => {
 
  postal.publish({
  channel: 'hello',
- topic: 'muffLuvin',
+ topic: 'luvin',
  data: {
  shove: 'silo',
  push: 'brennan'

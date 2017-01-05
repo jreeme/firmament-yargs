@@ -3,18 +3,22 @@
     <words>
       <w>accum</w>
       <w>crypton</w>
+      <w>debounce</w>
       <w>enoent</w>
       <w>inpath</w>
       <w>jsnlog</w>
       <w>lodash</w>
+      <w>luvin</w>
       <w>passwd</w>
       <w>pidof</w>
       <w>readline</w>
       <w>sinon</w>
       <w>stdin</w>
+      <w>subdir</w>
       <w>sudo</w>
       <w>testout</w>
       <w>unsubscribe</w>
+      <w>uptime</w>
     </words>
   </dictionary>
 </component>

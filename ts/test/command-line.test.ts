@@ -72,6 +72,7 @@ function testCommand(commands: string[][], cb: (argv: any)=>void) {
     let newSubCommand = kernel.get<Command>('CommandImpl');
     newSubCommand.aliases = ['alias-sub-1-1-' + i, 'alias-sub-1-2-' + i];
     newSubCommand.commandDesc = 'subCommandDesc-' + i;
+    //noinspection JSBitwiseOperatorUsage
     if (i & 1) {
       commands.push([newCommand.aliases[0], newSubCommand.aliases[0]]);
       newSubCommand.handler = cb;

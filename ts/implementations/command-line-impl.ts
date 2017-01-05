@@ -7,11 +7,9 @@ declare let console: ConsoleEx;
 
 @injectable()
 export class CommandLineImpl implements CommandLine {
-  nestedYargs: NestedYargs;
   private nestedYargsApp: NestedYargsCategory;
 
-  constructor(@inject('NestedYargs')_nestedYargs: NestedYargs) {
-    this.nestedYargs = _nestedYargs;
+  constructor(@inject('NestedYargs') private nestedYargs: NestedYargs) {
     this.addEasyTableToConsole();
   }
 
@@ -20,10 +18,10 @@ export class CommandLineImpl implements CommandLine {
   }
 
   addCommand(cmd: Command) {
-    cmd.aliases.forEach(alias=> {
+    cmd.aliases.forEach(alias => {
       let category = this.nestedYargs.createCategory(alias, cmd.commandDesc);
-      cmd.subCommands.forEach(subCommand=> {
-        subCommand.aliases.forEach(alias=> {
+      cmd.subCommands.forEach(subCommand => {
+        subCommand.aliases.forEach(alias => {
           let catCmd = this.nestedYargs.createCommand(
             alias,
             subCommand.commandDesc,
@@ -40,7 +38,7 @@ export class CommandLineImpl implements CommandLine {
     console.table(rows);
   }
 
-  exec(unitTestArgs:string[] = []) {
+  exec(unitTestArgs: string[] = []) {
     this.nestedYargs.run(this.nestedYargsApp, unitTestArgs);
   }
 
@@ -55,13 +53,13 @@ export class CommandLineImpl implements CommandLine {
 
     function arrayToString(arr) {
       let t = new Table();
-      arr.forEach(record=> {
+      arr.forEach(record => {
         if (typeof record === 'string' ||
           typeof record === 'number') {
           t.cell('item', record);
         } else {
           // assume plain object
-          Object.keys(record).forEach(property=> {
+          Object.keys(record).forEach(property => {
             t.cell(property, record[property]);
           });
         }
@@ -89,7 +87,7 @@ export class CommandLineImpl implements CommandLine {
 
     function objectToArray(obj) {
       let keys = Object.keys(obj);
-      return keys.map(key=> {
+      return keys.map(key => {
         return {
           key: key,
           value: obj[key]
@@ -109,7 +107,7 @@ export class CommandLineImpl implements CommandLine {
         Array.isArray(args[1])) {
         return printTitleTable(args[0], args[1]);
       }
-      args.forEach(k=> {
+      args.forEach(k => {
         if (typeof k === 'string') {
           return console.log(k);
         } else if (Array.isArray(k)) {

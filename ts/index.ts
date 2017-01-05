@@ -10,6 +10,7 @@ export * from './interfaces/progress-bar';
 export * from './interfaces/progress-task';
 export * from './interfaces/positive';
 export * from './interfaces/force-error';
+export * from './interfaces/remote-catalog';
 export * from './implementations/force-error-impl';
 export * from './custom-typings';
 import kernel from "./inversify.config";

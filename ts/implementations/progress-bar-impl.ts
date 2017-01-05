@@ -10,19 +10,17 @@ const status = require('node-status');
 
 @injectable()
 export class ProgressBarImpl implements ProgressBar {
-  private postal: IPostal;
   private tasks: ProgressTask[] = [];
   private started: boolean = false;
   private patternBase: string = '{uptime.green} {spinner.cyan}';
   private pattern: string = '';
 
-  constructor(@inject('IPostal')_postal: IPostal) {
-    this.postal = _postal;
+  constructor(@inject('IPostal') private postal: IPostal) {
     this.postal.subscribe({
       channel: 'ProgressBar',
       topic: 'Stop',
-      callback: (data) => {
-        if(this.started){
+      callback: () => {
+        if (this.started) {
           status.stop();
         }
       }

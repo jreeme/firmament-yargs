@@ -27,7 +27,7 @@ describe('SpawnAsync (no console out)', function () {
           expect(err).to.equal(null);
           spawn.commandUtil.stdoutWrite(result);
         },
-        (err, result) => {
+        (err) => {
           expect(err).to.equal(null);
           done();
         }

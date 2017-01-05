@@ -15,7 +15,7 @@ export class ForceErrorImpl implements ForceError {
   checkCallback(cb: (err: Error, anything: any)=>void): (err: Error, anything: any)=>void {
     return (typeof cb === 'function')
       ? cb
-      : (e, a) => {
+      : () => {
     };
   }
 }

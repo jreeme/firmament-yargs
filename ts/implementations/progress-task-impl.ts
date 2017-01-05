@@ -5,7 +5,9 @@ import {injectable} from "inversify";
 export class ProgressTaskImpl implements ProgressTask {
   id: string;
   msg: string;
+  //noinspection JSUnusedGlobalSymbols
   current: number;
+  //noinspection JSUnusedGlobalSymbols
   total: number;
   statusItem: any;
 }

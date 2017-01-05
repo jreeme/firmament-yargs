@@ -1,6 +1,6 @@
 import {injectable, inject} from "inversify";
 import {Spawn} from '../interfaces/spawn';
-import {ChildProcess, SpawnSyncReturns, spawn, spawnSync} from 'child_process';
+import {ChildProcess, spawn} from 'child_process';
 import {CommandUtil} from '../interfaces/command-util';
 import {ForceErrorImpl} from "./force-error-impl";
 import {SpawnOptions2} from "../custom-typings";
@@ -13,17 +13,14 @@ const psTree = require('ps-tree');
 export class SpawnImpl extends ForceErrorImpl implements Spawn {
   cachedPassword: string;
 
-  commandUtil: CommandUtil;
-
-  constructor(@inject('CommandUtil')_commandUtil: CommandUtil) {
+  constructor(@inject('CommandUtil') public commandUtil: CommandUtil) {
     super();
-    this.commandUtil = _commandUtil;
   }
 
   spawnShellCommandPipelineAsync(cmdArray: string[][],
                                  optionsArray?: SpawnOptions2[],
-                                 cbStatusOrFinal?: (err: Error, result: string)=>void,
-                                 cbFinal?: (err: Error, result: string)=>void): ChildProcess {
+                                 cbStatusOrFinal?: (err: Error, result: string) => void,
+                                 cbFinal?: (err: Error, result: string) => void): ChildProcess {
     let lclCmdArray = cmdArray.slice(0);
     let lclOptionsArray = optionsArray.slice(0);
     let cmd = lclCmdArray.pop().slice(0);
@@ -44,32 +41,33 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return childProcess;
   }
 
+  //noinspection JSUnusedLocalSymbols
   sudoSpawnPipelineAsync(cmdArray: string[][],
                          optionsArray?: SpawnOptions2[],
-                         cbStatusOrFinal?: (err: Error, result: string)=>void,
-                         cbFinal?: (err: Error, result: string)=>void): ChildProcess {
+                         cbStatusOrFinal?: (err: Error, result: string) => void,
+                         cbFinal?: (err: Error, result: string) => void): ChildProcess {
     return undefined;
   }
 
   private validate_spawnShellCommandAsync_args(cmd: string[],
                                                options: SpawnOptions2 = null,
-                                               cbStatus: (err: Error, result: string)=>void = null,
-                                               cbFinal: (err: Error, result: string)=>void = null) {
+                                               cbStatus: (err: Error, result: string) => void = null,
+                                               cbFinal: (err: Error, result: string) => void = null) {
     cmd = cmd || [];
     //Make a copy of cmd
     cmd = cmd.slice(0);
     if (typeof cbFinal !== 'function') {
       if (typeof cbStatus !== 'function') {
-        cbFinal = cbStatus = (err: Error, result: string) => {
+        cbFinal = cbStatus = () => {
         };
       } else {
         cbFinal = cbStatus;
-        cbStatus = (err: Error, result: string) => {
+        cbStatus = () => {
         };
       }
     } else {
       if (typeof cbStatus !== 'function') {
-        cbStatus = (err: Error, result: string) => {
+        cbStatus = () => {
         };
       }
     }
@@ -89,8 +87,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
 
   spawnShellCommandAsync(_cmd: string[],
                          _options: SpawnOptions2 = null,
-                         _cbStatus: (err: Error, result: string)=>void = null,
-                         _cbFinal: (err: Error, result: string)=>void = null) {
+                         _cbStatus: (err: Error, result: string) => void = null,
+                         _cbFinal: (err: Error, result: string) => void = null) {
     let me = this;
     let {cmd, options, cbStatus, cbFinal} =
       me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal);
@@ -145,7 +143,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return childProcess;
   }
 
-  private static reportStatus(cbStatus: (err: Error, status: string)=>void, status: string) {
+  private static reportStatus(cbStatus: (err: Error, status: string) => void, status: string) {
     if (!cbStatus || !status) {
       return;
     }
@@ -164,8 +162,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                                   stdoutText: string,
                                   stderrText: string,
                                   options: SpawnOptions2,
-                                  cbStatus: (err: Error, result: string)=>void,
-                                  cbFinal: (err: Error, result: string)=>void): (err: Error, result: string)=>void {
+                                  cbStatus: (err: Error, result: string) => void,
+                                  cbFinal: (err: Error, result: string) => void): (err: Error, result: string) => void {
     if (cbFinal) {
       SpawnImpl.reportStatus(cbStatus, options.postSpawnMessage);
       let returnString = !options.suppressFinalStats
@@ -181,8 +179,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
 
   sudoSpawnAsync(cmd: string[],
                  options: SpawnOptions2 = null,
-                 cbStatusOrFinal: (err: Error, result: string)=>void = null,
-                 cbFinal: (err: Error, result: string)=>void = null) {
+                 cbStatusOrFinal: (err: Error, result: string) => void = null,
+                 cbFinal: (err: Error, result: string) => void = null) {
     let me = this;
     let prompt = '#node-sudo-passwd#';
     let prompts = 0;
@@ -194,7 +192,6 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let sudoBin = inpathSync('sudo', path);
     args.unshift(sudoBin);
 
-    //TODO: Set default options
     let child: ChildProcess = me.spawnShellCommandAsync(args, options, cbStatusOrFinal, cbFinal);
 
     if (!child) {
