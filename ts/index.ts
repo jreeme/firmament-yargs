@@ -18,6 +18,6 @@ export {kernel};
 
 //HACK so tools can get version to sync the firmament ecosystem
 if(process.argv[2] && process.argv[2].toString() === '--version'){
-  console.log(require('../package.json').version);
-  process.exit();
+  let package_json = require('../package.json');
+  console.log(`${package_json.name}: ${package_json.version}`);
 }
