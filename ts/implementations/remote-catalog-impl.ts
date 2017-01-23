@@ -68,9 +68,6 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
         return;
       }
       safeJsonParse(text, (err, parsedObject) => {
-        if (me.commandUtil.callbackIfError(cb, err)) {
-          return;
-        }
         let name = path.basename(absoluteUrl);
         cb(null, {
           absoluteUrl, name, text, parsedObject, parentCatalogEntryName
