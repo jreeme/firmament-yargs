@@ -64,7 +64,13 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
     let me = this;
     cb = me.checkCallback(cb);
     me.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
+      if (me.commandUtil.callbackIfError(cb, err)) {
+        return;
+      }
       safeJsonParse(text, (err, parsedObject) => {
+        if (me.commandUtil.callbackIfError(cb, err)) {
+          return;
+        }
         let name = path.basename(absoluteUrl);
         cb(null, {
           absoluteUrl, name, text, parsedObject, parentCatalogEntryName
