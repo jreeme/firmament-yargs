@@ -1,0 +1,3 @@
+<component name="DependencyValidationManager">
+  <scope name="ts" pattern="file[firmament-yargs]:ts//*" />
+</component>

@@ -1,6 +1,6 @@
 {
   "name": "firmament-yargs",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Typescript classes for building CLI node applications",
   "main": "js/index.js",
   "typings": "js/index",
@@ -26,16 +26,16 @@
   "devDependencies": {
     "@types/async": "^2.0.37",
     "@types/chai": "^3.4.34",
-    "@types/lodash": "^4.14.37",
+    "@types/lodash": "^4.14.52",
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.45",
     "@types/reflect-metadata": "0.0.5",
     "@types/request": "0.0.39",
     "@types/sinon": "^1.16.31",
+    "typescript": "^2.1.5",
     "chai": "^3.5.0",
     "mocha": "^2.5.3",
-    "sinon": "^1.17.6",
-    "typescript": "2.0.8"
+    "sinon": "^1.17.6"
   },
   "dependencies": {
     "async": "^2.1.4",
@@ -44,7 +44,7 @@
     "file-exists": "^2.0.0",
     "inpath": "^1.0.2",
     "inversify": "^3.0.0-beta.1",
-    "lodash": "^4.8.2",
+    "lodash": "^4.17.4",
     "nested-yargs": "^1.0.7",
     "node-status": "^1.0.0",
     "pidof": "^1.0.2",

@@ -42,7 +42,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
             fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
           });
         });
-        async.parallel(fnArray, (err, results) => {
+        async.parallel(fnArray, (err, results: RemoteCatalogResource[]) => {
           //Now collate results into catalog and send it back
           remoteCatalog.entries.forEach(entry => {
             entry.resources =
