@@ -8,13 +8,14 @@ import nodeUrl = require('url');
 import * as _ from 'lodash';
 import {CommandUtil} from "../interfaces/command-util";
 import {ForceErrorImpl} from "./force-error-impl";
+import {SafeJson} from "../interfaces/safe-json";
 const fileExists = require('file-exists');
-const safeJsonParse = require('safe-json-parse/callback');
 const async = require('async');
 export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCatalogGetter {
   private baseUrl: string;
 
-  constructor(@inject('CommandUtil') private commandUtil: CommandUtil) {
+  constructor(@inject('CommandUtil') private commandUtil: CommandUtil,
+              @inject('SafeJson') private safeJson: SafeJson) {
     super();
   }
 
@@ -67,7 +68,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
       if (me.commandUtil.callbackIfError(cb, err)) {
         return;
       }
-      safeJsonParse(text, (err, parsedObject) => {
+      me.safeJson.safeParse(text, (err, parsedObject) => {
         let name = path.basename(absoluteUrl);
         cb(null, {
           absoluteUrl, name, text, parsedObject, parentCatalogEntryName
@@ -81,7 +82,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
     cb = cb || (() => {
       });
     me.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
-      safeJsonParse(text, (err, jsonObject) => {
+      me.safeJson.safeParse(text, (err, jsonObject) => {
         cb(err, jsonObject, absoluteUrl);
       });
     });
