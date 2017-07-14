@@ -36,7 +36,7 @@ export class ProgressBarImpl implements ProgressBar {
       }
     });
 
-    let task = _.find(this.tasks, ['id', id]);
+    let task = _.find(this.tasks, {id});
     if (!task) {
       if (current >= total) {
         return;

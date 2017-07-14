@@ -11,14 +11,17 @@ export * from './interfaces/progress-bar';
 export * from './interfaces/progress-task';
 export * from './interfaces/positive';
 export * from './interfaces/force-error';
-export * from './interfaces/remote-catalog';
+export * from './interfaces/remote-catalog/remote-catalog';
+export * from './interfaces/remote-catalog/remote-catalog-entry';
+export * from './interfaces/remote-catalog/remote-catalog-getter';
+export * from './interfaces/remote-catalog/remote-catalog-resource';
 export * from './implementations/force-error-impl';
 export * from './custom-typings';
 import kernel from "./inversify.config";
 export {kernel};
 
 //HACK so tools can get version to sync the firmament ecosystem
-if(process.argv[2] && process.argv[2].toString() === '--version'){
+if (process.argv[2] && process.argv[2].toString() === '--version') {
   let package_json = require('../package.json');
   console.log(`${package_json.name}: ${package_json.version}`);
 }

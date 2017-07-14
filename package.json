@@ -26,16 +26,16 @@
   "devDependencies": {
     "@types/async": "^2.0.37",
     "@types/chai": "^3.4.34",
-    "@types/lodash": "^4.14.52",
+    "@types/lodash": "^4.14.69",
     "@types/mocha": "^2.2.32",
     "@types/node": "^6.0.45",
     "@types/reflect-metadata": "0.0.5",
-    "@types/request": "0.0.39",
+    "@types/request": "0.0.47",
     "@types/sinon": "^1.16.31",
-    "typescript": "^2.1.5",
     "chai": "^3.5.0",
     "mocha": "^2.5.3",
-    "sinon": "^1.17.6"
+    "sinon": "^1.17.6",
+    "typescript": "^2.4.1"
   },
   "dependencies": {
     "async": "^2.1.4",

@@ -1,4 +1,3 @@
-import {RemoteCatalog, RemoteCatalogGetter, RemoteCatalogResource} from '../interfaces/remote-catalog';
 import request = require('request');
 import {inject} from 'inversify';
 import {Url} from 'url';
@@ -9,24 +8,23 @@ import * as _ from 'lodash';
 import {CommandUtil} from "../interfaces/command-util";
 import {ForceErrorImpl} from "./force-error-impl";
 import {SafeJson} from "../interfaces/safe-json";
+import {RemoteCatalogGetter} from "../interfaces/remote-catalog/remote-catalog-getter";
+import {RemoteCatalog} from "../interfaces/remote-catalog/remote-catalog";
+import {RemoteCatalogResource} from "../interfaces/remote-catalog/remote-catalog-resource";
 const fileExists = require('file-exists');
 const async = require('async');
 export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCatalogGetter {
-  private baseUrl: string;
-
   constructor(@inject('CommandUtil') private commandUtil: CommandUtil,
               @inject('SafeJson') private safeJson: SafeJson) {
     super();
   }
 
-  getCatalogFromUrl(url: Url|string, cb: (err, remoteCatalog) => void) {
-    let me = this;
-    let parsedUrl = RemoteCatalogGetterImpl.getParsedUrl(url);
-    if (parsedUrl.protocol) {
-      me.baseUrl = `${parsedUrl.protocol}//${parsedUrl.hostname}${path.dirname(parsedUrl.path)}`;
-    } else {
-      me.baseUrl = path.dirname(parsedUrl.path);
-    }
+  getCatalogFromUrl(url: Url | string, cb: (err, remoteCatalog) => void) {
+    const me = this;
+    const parsedUrl = me.getParsedUrl(url);
+    const baseUrl = (parsedUrl.protocol)
+      ? `${parsedUrl.protocol}//${parsedUrl.hostname}${path.dirname(parsedUrl.path)}`
+      : path.dirname(parsedUrl.path);
     me.getRemoteResource(parsedUrl, 'root', (err, remoteCatalogResource) => {
       if (me.commandUtil.callbackIfError(cb, err)) {
         return;
@@ -36,9 +34,9 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
         let fnArray: any[] = [];
         remoteCatalog.entries.forEach(entry => {
           entry.urls.forEach(url => {
-            let parsedUrl = RemoteCatalogGetterImpl.getParsedUrl(url);
+            let parsedUrl = me.getParsedUrl(url);
             if (!parsedUrl.protocol) {
-              url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${me.baseUrl}/${parsedUrl.path}`;
+              url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${baseUrl}/${parsedUrl.path}`;
             }
             fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
           });
@@ -47,7 +45,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
           //Now collate results into catalog and send it back
           remoteCatalog.entries.forEach(entry => {
             entry.resources =
-              <RemoteCatalogResource[]>_.filter(results, ['parentCatalogEntryName', entry.name]);
+              <RemoteCatalogResource[]>_.filter(results, {parentCatalogEntryName: entry.name});
           });
           cb(null, remoteCatalog);
         });
@@ -77,7 +75,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
     });
   }
 
-  resolveJsonObjectFromUrl(url: Url|string, cb: (err: Error, jsonObject: any, absoluteUrl: string) => void) {
+  resolveJsonObjectFromUrl(url: Url | string, cb: (err: Error, jsonObject: any, absoluteUrl: string) => void) {
     let me = this;
     cb = cb || (() => {
       });
@@ -88,40 +86,37 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
     });
   }
 
-  resolveTextResourceFromUrl(url: Url|string, cb: (err: Error, text?: string, absoluteUrl?: string) => void) {
+  resolveTextResourceFromUrl(url: Url | string, cb: (err: Error, text?: string, absoluteUrl?: string) => void): void {
     let me = this;
     cb = me.checkCallback(cb);
     try {
-      let parsedUrl = RemoteCatalogGetterImpl.getParsedUrl(url);
+      let parsedUrl = me.getParsedUrl(url);
       if (!parsedUrl) {
         //Now this is a problem. Don't know what to do with random objects
-        cb(new Error(`Url: '${url}' is unusable`));
-        return;
+        return cb(new Error(`Url: '${url}' is unusable`));
       }
       if (!parsedUrl.protocol) {
         let urlString = parsedUrl.path;
         if (!fileExists(urlString)) {
-          cb(new Error(`${urlString} doesn't exist`), null);
-          return;
+          return cb(new Error(`${urlString} doesn't exist`), null);
         }
-        cb(null, fs.readFileSync(urlString, 'utf8'), urlString);
-        return;
+        return cb(null, fs.readFileSync(urlString, 'utf8'), urlString);
       }
       //Let's look on the web
       request(parsedUrl.href, (err, res, text) => {
         if (res.statusCode !== 200) {
-          cb(new Error(`Error retrieving '${parsedUrl.href}'`), null);
-          return;
+          return cb(new Error(`Error retrieving '${parsedUrl.href}'`), null);
         }
-        cb(null, text, parsedUrl.href);
+        return cb(null, text, parsedUrl.href);
       });
     }
     catch (err) {
-      cb(err, null);
+      return cb(err, null);
     }
   }
 
-  private static getParsedUrl(url: Url | string) {
+  getParsedUrl(url: Url | string): Url {
+    const me = this;
     try {
       if (url.constructor.name === 'Url') {
         return <Url>url;
@@ -130,8 +125,9 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
         return nodeUrl.parse(<string>url);
       }
     } catch (err) {
-      return null;
+      me.commandUtil.logError(err);
     }
+    return null;
   }
 }
 
