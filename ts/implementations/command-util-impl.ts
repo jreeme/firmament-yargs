@@ -3,12 +3,13 @@ import {CommandUtil} from "../interfaces/command-util";
 import path = require('path');
 import {IPostal} from "../interfaces/postal";
 import {LogConsole} from "../interfaces/log-console";
+import {ForceErrorImpl} from "./force-error-impl";
 
 const blackHoleStream = new (require('black-hole-stream'))();
 const fs = require('fs');
 
 @injectable()
-export class CommandUtilImpl implements CommandUtil {
+export class CommandUtilImpl extends ForceErrorImpl implements CommandUtil {
   private _console: LogConsole = {
     log: this.stdoutLog.bind(this),
     info: this.stdoutLog.bind(this),
@@ -37,6 +38,7 @@ export class CommandUtilImpl implements CommandUtil {
   }
 
   constructor(@inject('IPostal') private postal: IPostal) {
+    super();
     this.registerProcessManagementEvents();
     const cacheStdoutWrite = process.stdout.write;
     const cacheStderrWrite = process.stderr.write;
@@ -112,6 +114,12 @@ export class CommandUtilImpl implements CommandUtil {
     return '';
   }
 
+  processExitIfError(err: Error, nonErrorMessage: string = null) {
+    if (err) {
+      this.processExitWithError(err, nonErrorMessage);
+    }
+  }
+
   processExitWithError(err: Error, nonErrorMessage: string = null) {
     this.processExit(!!err ? 1 : 0, !!err ? err.message : !!nonErrorMessage ? nonErrorMessage : '');
   }
@@ -125,13 +133,10 @@ export class CommandUtilImpl implements CommandUtil {
                   err: Error = null,
                   result: any = null): boolean {
     if (this.logError(err)) {
-      if (cb && (typeof cb === 'function')) {
-        cb(err, result);
-      }
-      //return 'true' if (err !== null)
-      return true;
+      cb = this.checkCallback(cb);
+      cb(err, result);
     }
-    return false;
+    return !!err;
   }
 
   logAndCallback(msg: string,
@@ -139,20 +144,17 @@ export class CommandUtilImpl implements CommandUtil {
                  err: Error = null,
                  result: any = null): boolean {
     this._console.log(err ? err.message : msg);
-    if (cb && (typeof cb === 'function')) {
-      cb(err, result);
-    }
+    cb = this.checkCallback(cb);
+    cb(err, result);
     return !!err;
   }
 
   getConfigFilePath(filename: string, extension: string = '.json') {
     let regex = new RegExp('(.*)\\' + extension + '$', 'i');
     let cwd = process.cwd();
-    if (regex.test(filename)) {
-      filename = filename.replace(regex, '$1' + extension);
-    } else {
-      filename = filename + extension;
-    }
+    filename = regex.test(filename)
+      ? filename.replace(regex, '$1' + extension)
+      : filename + extension;
     return path.resolve(cwd, filename);
   }
 }
