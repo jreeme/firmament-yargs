@@ -114,9 +114,9 @@ export class CommandUtilImpl extends ForceErrorImpl implements CommandUtil {
     return '';
   }
 
-  processExitIfError(err: Error, nonErrorMessage: string = null) {
+  processExitIfError(err: Error) {
     if (err) {
-      this.processExitWithError(err, nonErrorMessage);
+      this.processExitWithError(err);
     }
   }
 
@@ -132,10 +132,8 @@ export class CommandUtilImpl extends ForceErrorImpl implements CommandUtil {
   callbackIfError(cb: (err: Error, result: any) => void,
                   err: Error = null,
                   result: any = null): boolean {
-    if (this.logError(err)) {
-      cb = this.checkCallback(cb);
-      cb(err, result);
-    }
+    cb = this.checkCallback(cb);
+    err && cb(err, result);
     return !!err;
   }
 
