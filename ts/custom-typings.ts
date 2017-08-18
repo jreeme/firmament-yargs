@@ -7,5 +7,8 @@ export interface SpawnOptions2 extends SpawnOptions{
   suppressStdErr?:boolean;
   cacheStdOut?:boolean;
   cacheStdErr?:boolean;
+  suppressFinalError?: boolean,
+  sudoUser?: string,
+  sudoPassword?: string
   suppressFinalStats?:boolean;
 }
