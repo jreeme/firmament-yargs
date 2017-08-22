@@ -129,7 +129,7 @@ export class CommandUtilImpl extends ForceErrorImpl implements CommandUtil {
     process.exit(exitCode);
   }
 
-  callbackIfError(cb: (err: Error, result: any) => void,
+  callbackIfError(cb: (err: Error, anything: any, anything2?: any) => void,
                   err: Error = null,
                   result: any = null): boolean {
     cb = this.checkCallback(cb);
@@ -138,7 +138,7 @@ export class CommandUtilImpl extends ForceErrorImpl implements CommandUtil {
   }
 
   logAndCallback(msg: string,
-                 cb: (err: Error, result: any) => void,
+                 cb: (err: Error, anything: any, anything2?: any) => void,
                  err: Error = null,
                  result: any = null): boolean {
     this._console.log(err ? err.message : msg);
