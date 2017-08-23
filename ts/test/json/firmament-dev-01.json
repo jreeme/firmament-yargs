@@ -1,0 +1,89 @@
+{
+  "description": "Second, 'npm install' those sons of guns",
+  "prerequisiteGraphUri": "firmament-dev-02.json",
+  "options": {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands": [
+    {
+      "description": "NPM install firmament-yargs",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "cyan",
+      "command": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "firmament-yargs"
+      ]
+    },
+    {
+      "description": "NPM install firmament-bash",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "yellow",
+      "command": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "firmament-bash"
+      ]
+    },
+    {
+      "description": "NPM install firmament-vita",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "green",
+      "command": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "firmament-vita"
+      ]
+    },
+    {
+      "description": "NPM install firmament-docker",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "white",
+      "command": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "firmament-docker"
+      ]
+    }
+  ],
+  "serialSynchronizedCommands": [
+    {
+      "description": "GIT checkout shell",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "green",
+      "workingDirectory": "firmament",
+      "command": "git",
+      "args": [
+        "checkout",
+        "shell"
+      ]
+    },
+    {
+      "description": "NPM install firmament",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "blue",
+      "command": "npm",
+      "args": [
+        "install",
+        "--prefix",
+        "firmament"
+      ]
+    }
+  ]
+}

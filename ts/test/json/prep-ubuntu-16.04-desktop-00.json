@@ -1,0 +1,102 @@
+{
+  "description"               : "Prepare base Ubuntu 16.04 desktop for development",
+  "prerequisiteGraphUri"      : "prep-ubuntu-16.04-server-00.json",
+  "options"                   : {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands"      : [
+    {
+      "description"                : "[sudo] Add Chrome linux signing key",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor"                : "",
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "curl https://dl.google.com/linux/linux_signing_key.pub | apt-key add -"
+      ]
+    },
+    {
+      "description"                : "[sudo] Add Chrome sources",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor"                : "",
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo 'deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main' >> /etc/apt/sources.list"
+      ]
+    }
+  ],
+  "serialSynchronizedCommands": [
+    {
+      "description"                : "[sudo] apt-get update",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "apt-get",
+      "args"                       : [
+        "update"
+      ]
+    },
+    {
+      "description"                : "apt-get install [...]",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "apt-get",
+      "args"                       : [
+        "install",
+        "-y",
+        "virtualbox-5.1",
+        "google-chrome-stable"
+      ]
+    },
+    {
+      "description"                : "[sudo] curl webstorm.tar.gz | tar xvf",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor"                : "",
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "curl https://download-cf.jetbrains.com/webstorm/WebStorm-2017.1.1.tar.gz | tar -xzvC /var/local"
+      ]
+    },
+    {
+      "description"                : "Chrome First Run",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : false,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "/usr/bin/google-chrome"
+      ]
+    },
+    {
+      "description"                : "WebStorm First Run",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : false,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "/var/local/WebStorm-171.4073.40/bin/webstorm.sh"
+      ]
+    }
+  ]
+}

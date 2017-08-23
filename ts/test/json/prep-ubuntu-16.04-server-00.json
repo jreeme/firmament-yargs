@@ -1,0 +1,83 @@
+{
+  "description"               : "Prepare base Ubuntu 16.04 server for firmament-docker deploys",
+  "prerequisiteGraphUri"      : "prep-ubuntu-16.04-server-01.json",
+  "options"                   : {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands"      : [
+    {
+      "description"                : "[sudo] npm install -g strongloop",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "npm",
+      "args"                       : [
+        "install",
+        "-g",
+        "strongloop"
+      ]
+    },
+    {
+      "description"                : "apt-get install [...]",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "apt-get",
+      "args"                       : [
+        "install",
+        "-y",
+        "curl",
+        "git",
+        "apt-transport-https",
+        "ca-certificates",
+        "software-properties-common",
+        "docker-ce"
+      ]
+    }
+  ],
+  "serialSynchronizedCommands": [
+    {
+      "description"                : "git config --global 'user.name'",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : false,
+      "command"                    : "git",
+      "args"                       : [
+        "config",
+        "--global",
+        "user.name",
+        "nobody.nobody"
+      ]
+    },
+    {
+      "description"                : "git config --global 'user.email'",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : false,
+      "command"                    : "git",
+      "args"                       : [
+        "config",
+        "--global",
+        "user.email",
+        "nobody@nowhere.com"
+      ]
+    },
+    {
+      "description"                : "usermod -aG docker <me>",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : false,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "sudo usermod -aG docker $USER"
+      ]
+    }
+  ]
+}

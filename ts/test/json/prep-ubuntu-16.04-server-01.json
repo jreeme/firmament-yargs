@@ -1,0 +1,147 @@
+{
+  "description"               : "Prepare base Ubuntu 16.04 server for firmament-docker deploys (01)",
+  "options"                   : {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands"      : [
+    {
+      "description"                : "[sudo] Add VirtualBox sources",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo 'deb [arch=amd64] http://download.virtualbox.org/virtualbox/debian xenial contrib' >> /etc/apt/sources.list"
+      ]
+    },
+    {
+      "description"                : "[sudo] Add VirtualBox sources",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo 'deb [arch=amd64] https://download.docker.com/linux/ubuntu xenial stable' >> /etc/apt/sources.list"
+      ]
+    },
+    {
+      "description"                : "Add 'set -o vi' to .bashrc",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo \"set -o vi\" >> ~/.bashrc"
+      ]
+    },
+    {
+      "description"                : "Add 'alias d='docker'' to .bashrc",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo \"alias d='docker'\" >> ~/.bashrc"
+      ]
+    },
+    {
+      "description"                : "Add 'alias f='firmament'' to .bashrc",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo \"alias f='firmament'\" >> ~/.bashrc"
+      ]
+    },
+    {
+      "description"                : "Add 'set nu' to .vimrc",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo \"set nu\" >> ~/.vimrc"
+      ]
+    },
+    {
+      "description"                : "Create '_swapEsc.sh'",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "echo \"#!/usr/bin/env bash\nsetxkbmap -option caps:swapescape\" >> ~/_swapEsc.sh && chmod 755 ~/_swapEsc.sh"
+      ]
+    }
+  ],
+  "serialSynchronizedCommands": [
+    {
+      "description"                : "[sudo] Add Docker signing key",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "curl https://download.docker.com/linux/ubuntu/gpg | apt-key add -"
+      ]
+    },
+    {
+      "description"                : "[sudo] Add VirtualBox signing key",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "/usr/bin/env",
+      "args"                       : [
+        "bash",
+        "-c",
+        "curl https://www.virtualbox.org/download/oracle_vbox_2016.asc | apt-key add -"
+      ]
+    },
+    {
+      "description"                : "[sudo] apt-get update",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "apt-get",
+      "args"                       : [
+        "update"
+      ]
+    },
+    {
+      "description"                : "apt-get install [...]",
+      "suppressOutput"             : false,
+      "showDiagnostics"            : false,
+      "showPreAndPostSpawnMessages": true,
+      "useSudo"                    : true,
+      "command"                    : "apt-get",
+      "args"                       : [
+        "install",
+        "-y",
+        "build-essential",
+        "libkrb5-dev"
+      ]
+    }
+  ]
+}

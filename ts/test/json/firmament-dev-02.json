@@ -1,0 +1,68 @@
+{
+  "description": "First, git the firmament files async, stat!",
+  "options": {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands": [
+    {
+      "description": "Git the firmament-yargs",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "cyan",
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/jreeme/firmament-yargs"
+      ]
+    },
+    {
+      "description": "Git the firmament-vita",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "yellow",
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/jreeme/firmament-vita"
+      ]
+    },
+    {
+      "description": "Git the firmament-bash",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "yellow",
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/jreeme/firmament-bash"
+      ]
+    },
+    {
+      "description": "Git the firmament-docker",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "white",
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/jreeme/firmament-docker"
+      ]
+    },
+    {
+      "description": "Git the firmament",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "green",
+      "command": "git",
+      "args": [
+        "clone",
+        "https://github.com/sotera/firmament"
+      ]
+    }
+  ]
+}

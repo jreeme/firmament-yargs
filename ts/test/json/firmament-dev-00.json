@@ -1,0 +1,94 @@
+{
+  "description": "Second, 'npm build', and I'm talkin' TypeScript",
+  "prerequisiteGraphUri": "firmament-dev-01.json",
+  "options": {
+    "displayExecutionGraphDescription": true
+  },
+  "asynchronousCommands": [
+    {
+      "description": "NPM build firmament-yargs",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "cyan",
+      "command": "npm",
+      "args": [
+        "run",
+        "build",
+        "--prefix",
+        "firmament-yargs"
+      ]
+    },
+    {
+      "description": "NPM build firmament-bash",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "yellow",
+      "command": "npm",
+      "args": [
+        "run",
+        "build",
+        "--prefix",
+        "firmament-bash"
+      ]
+    },
+    {
+      "description": "NPM build firmament-vita",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "green",
+      "command": "npm",
+      "args": [
+        "run",
+        "build",
+        "--prefix",
+        "firmament-vita"
+      ]
+    },
+    {
+      "description": "NPM build firmament-docker",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "white",
+      "command": "npm",
+      "args": [
+        "run",
+        "build",
+        "--prefix",
+        "firmament-docker"
+      ]
+    }
+  ],
+  "serialSynchronizedCommands": [
+    {
+      "description": "GIT checkout shell",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "green",
+      "workingDirectory": "firmament",
+      "command": "git",
+      "args": [
+        "checkout",
+        "shell"
+      ]
+    },
+    {
+      "description": "NPM build firmament",
+      "suppressOutput": false,
+      "showDiagnostics": false,
+      "showPreAndPostSpawnMessages": true,
+      "outputColor": "blue",
+      "command": "npm",
+      "args": [
+        "run",
+        "build",
+        "--prefix",
+        "firmament"
+      ]
+    }
+  ]
+}

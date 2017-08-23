@@ -223,8 +223,178 @@ describe('Testing RemoteCatalogGetter.resolveJsonObjectFromUrl', () => {
     const url = path.resolve(cwd, 'ts/test/json/valid.json');
     remoteCatalogGetter.resolveJsonObjectFromUrl(url, (err, jsonObject, absoluteUrl) => {
       expect(err).to.not.exist;
-      expect(jsonObject).to.include({description:'Command Group 0'});
+      expect(jsonObject).to.include({description: 'Command Group 0'});
       expect(absoluteUrl).to.equal(url);
+      done();
+    });
+  });
+});
+
+describe('Testing RemoteCatalogGetter.getRemoteResource', () => {
+  let remoteCatalogGetter: RemoteCatalogGetter;
+  beforeEach(() => {
+    remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+  });
+  afterEach(() => {
+    remoteCatalogGetter.forceError = false;
+  });
+  it('should have callback with error', (done) => {
+    remoteCatalogGetter.forceError = true;
+    remoteCatalogGetter.getRemoteResource(null, null, (err, remoteCatalogResource) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('force error: RemoteCatalogGetterImpl.getRemoteResource');
+      expect(remoteCatalogResource).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when url is undefined', (done) => {
+    let url;
+    // noinspection JSUnusedAssignment
+    remoteCatalogGetter.getRemoteResource(url, null, (err, remoteCatalogResource) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Cannot read property 'constructor' of undefined`);
+      expect(remoteCatalogResource).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when url is null', (done) => {
+    const url = null;
+    remoteCatalogGetter.getRemoteResource(url, null, (err, remoteCatalogResource) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Cannot read property 'constructor' of null`);
+      expect(remoteCatalogResource).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when json resource does not exist', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'valid__.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    const parentCatalogEntryName = 'The parent catalog entry name!';
+
+    remoteCatalogGetter.getRemoteResource(url, parentCatalogEntryName, (err, remoteCatalogResource) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Url: '/home/jreeme/src/firmament-yargs/ts/test/json/valid__.json' does not exist`);
+      expect(remoteCatalogResource).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when resource does not contain valid json', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'bad-json.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    const parentCatalogEntryName = 'The parent catalog entry name!';
+
+    remoteCatalogGetter.getRemoteResource(url, parentCatalogEntryName, (err, remoteCatalogResource) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('Unexpected token : in JSON at position 1');
+      expect(remoteCatalogResource).to.exist;
+      done();
+    });
+  });
+  it('should provide reasonable remoteCatalogResource when given link to valid.json', (done) => {
+    const cwd = process.cwd();
+    const validJson = 'valid.json';
+    const url = path.resolve(cwd, 'ts/test/json', validJson);
+    const parentCatalogEntryName = 'The parent catalog entry name!';
+
+    remoteCatalogGetter.getRemoteResource(url, parentCatalogEntryName, (err, remoteCatalogResource) => {
+      expect(err).to.not.exist;
+      //Spot check 'remoteCatalogResource'
+      expect(remoteCatalogResource).to.exist;
+      expect(remoteCatalogResource).to.include({
+        name: validJson
+      });
+      expect(remoteCatalogResource.parentCatalogEntryName).to.equal(parentCatalogEntryName);
+      done();
+    });
+  });
+});
+
+describe('Testing RemoteCatalogGetter.getCatalogFromUrl', () => {
+  let remoteCatalogGetter: RemoteCatalogGetter;
+  beforeEach(() => {
+    remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+  });
+  afterEach(() => {
+    remoteCatalogGetter.forceError = false;
+  });
+  it('should have callback with error', (done) => {
+    remoteCatalogGetter.forceError = true;
+    remoteCatalogGetter.getCatalogFromUrl(null, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('force error: RemoteCatalogGetterImpl.getCatalogFromUrl');
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when url is undefined', (done) => {
+    let url;
+    // noinspection JSUnusedAssignment
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Cannot read property 'constructor' of undefined`);
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when url is null', (done) => {
+    const url = null;
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Cannot read property 'constructor' of null`);
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when json resource does not exist', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'valid__.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Url: '[object Object]' does not exist`);
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should have callback with error when resource does not contain valid json', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'bad-json.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('Unexpected token : in JSON at position 1');
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should return error on catalog containing bad url', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'badCommandCatalog.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal(`Url: '/home/jreeme/src/firmament-yargs/ts/test/json/prep-ubuntu-16.04-server---.json' does not exist`);
+      expect(remoteCatalog).to.not.exist;
+      done();
+    });
+  });
+  it('should return local remoteCatalog', (done) => {
+    const cwd = process.cwd();
+    const nonExistentJsonFile = 'commandCatalog.json';
+    const url = path.resolve(cwd, 'ts/test/json', nonExistentJsonFile);
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.not.exist;
+      expect(remoteCatalog).to.exist;
+      done();
+    });
+  });
+  it('should return local remoteCatalog', (done) => {
+    const url = 'https://raw.githubusercontent.com/jreeme/firmament-bash/master/command-json/commandCatalog.json';
+    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+      expect(err).to.not.exist;
+      expect(remoteCatalog).to.exist;
       done();
     });
   });

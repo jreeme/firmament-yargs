@@ -23,54 +23,107 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
 
   getCatalogFromUrl(url: Url | string, cb: (err, remoteCatalog) => void) {
     const me = this;
-    /*    const parsedUrl = me.getParsedUrl(url);
-        const baseUrl = (parsedUrl.protocol)
-          ? `${parsedUrl.protocol}//${parsedUrl.hostname}${path.dirname(parsedUrl.path)}`
-          : path.dirname(parsedUrl.path);
-        me.getRemoteResource(parsedUrl, 'root', (err, remoteCatalogResource) => {
-          if (me.commandUtil.callbackIfError(cb, err)) {
-            return;
-          }
-          try {
-            let remoteCatalog: RemoteCatalog = remoteCatalogResource.parsedObject;
-            let fnArray: any[] = [];
-            remoteCatalog.entries.forEach(entry => {
-              entry.urls.forEach(url => {
-                let parsedUrl = me.getParsedUrl(url);
-                if (!parsedUrl.protocol) {
-                  url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${baseUrl}/${parsedUrl.path}`;
+    cb = me.checkCallback(cb);
+    if (me.checkForceError('RemoteCatalogGetterImpl.getCatalogFromUrl', cb)) {
+      return;
+    }
+    me.getParsedUrl(url, (err, parsedUrl) => {
+      if (me.commandUtil.callbackIfError(cb, err)) {
+        return;
+      }
+      const baseUrl = (parsedUrl.protocol)
+        ? `${parsedUrl.protocol}//${parsedUrl.hostname}${path.dirname(parsedUrl.path)}`
+        : path.dirname(parsedUrl.path);
+      me.getRemoteResource(parsedUrl, 'root', (err, remoteCatalogResource) => {
+        if (me.commandUtil.callbackIfError(cb, err)) {
+          return;
+        }
+        try {
+          const remoteCatalog: RemoteCatalog = remoteCatalogResource.parsedObject;
+          const fnArray: any[] = [];
+          //-->
+          async.each(remoteCatalog.entries,
+            (entry, cb) => {
+              async.each(entry.urls,
+                (url, cb) => {
+                  me.getParsedUrl(url, (err, parsedUrl) => {
+                    if (me.commandUtil.callbackIfError(cb, err)) {
+                      return;
+                    }
+                    if (!parsedUrl.protocol) {
+                      url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${baseUrl}/${parsedUrl.path}`;
+                    }
+                    fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
+                  });
+                  cb();
+                },
+                (err) => {
+                  me.commandUtil.logError(err);
+                  cb();
+                });
+            },
+            (err) => {
+              if (me.commandUtil.callbackIfError(cb, err)) {
+                return;
+              }
+              async.parallel(fnArray, (err, results: RemoteCatalogResource[]) => {
+                if (me.commandUtil.callbackIfError(cb, err)) {
+                  return;
                 }
-                fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
+                //Now collate results into catalog and send it back
+                remoteCatalog.entries.forEach(entry => {
+                  entry.resources =
+                    <RemoteCatalogResource[]>_.filter(results, {parentCatalogEntryName: entry.name});
+                });
+                cb(null, remoteCatalog);
               });
             });
-            async.parallel(fnArray, (err, results: RemoteCatalogResource[]) => {
-              //Now collate results into catalog and send it back
-              remoteCatalog.entries.forEach(entry => {
-                entry.resources =
-                  <RemoteCatalogResource[]>_.filter(results, {parentCatalogEntryName: entry.name});
-              });
-              cb(null, remoteCatalog);
-            });
-          } catch (err) {
-            me.commandUtil.callbackIfError(cb, err);
-          }
-        });*/
+          //-->
+          /*          remoteCatalog.entries.forEach(entry => {
+                      entry.urls.forEach(url => {
+                        me.getParsedUrl(url, (err, parsedUrl) => {
+                          if (me.commandUtil.callbackIfError(cb, err)) {
+                            return;
+                          }
+                          if (!parsedUrl.protocol) {
+                            url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${baseUrl}/${parsedUrl.path}`;
+                          }
+                          fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
+                        });
+                      });
+                    });
+                    async.parallel(fnArray, (err, results: RemoteCatalogResource[]) => {
+                      //Now collate results into catalog and send it back
+                      remoteCatalog.entries.forEach(entry => {
+                        entry.resources =
+                          <RemoteCatalogResource[]>_.filter(results, {parentCatalogEntryName: entry.name});
+                      });
+                      cb(null, remoteCatalog);
+                    });*/
+        } catch (err) {
+          me.commandUtil.callbackIfError(cb, err);
+        }
+      });
+    });
   }
 
   //Right now uri can be a web address (http(s)://somewhere.com/some.json) or an absolute path (/tmp/some.json)
   //or a path relative to cwd (subdir/some.json)
-  private getRemoteResource(url: Url | string,
-                            parentCatalogEntryName: string,
-                            cb: (err: Error, remoteCatalogResource?: RemoteCatalogResource) => void) {
-    let me = this;
+  getRemoteResource(url: Url | string,
+                    parentCatalogEntryName: string,
+                    cb: (err: Error, remoteCatalogResource?: RemoteCatalogResource) => void) {
+    const me = this;
     cb = me.checkCallback(cb);
+    if (me.checkForceError('RemoteCatalogGetterImpl.getRemoteResource', cb)) {
+      return;
+    }
     me.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
       if (me.commandUtil.callbackIfError(cb, err)) {
         return;
       }
       me.safeJson.safeParse(text, (err, parsedObject) => {
-        let name = path.basename(absoluteUrl);
-        cb(null, {
+        const name = path.basename(absoluteUrl);
+        cb(err, {
           absoluteUrl, name, text, parsedObject, parentCatalogEntryName
         });
       });
@@ -78,7 +131,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
   }
 
   resolveJsonObjectFromUrl(url: Url | string, cb: (err: Error, jsonObject: any, absoluteUrl: string) => void) {
-    let me = this;
+    const me = this;
     cb = me.checkCallback(cb);
     if (me.checkForceError('RemoteCatalogGetterImpl.resolveJsonObjectFromUrl', cb)) {
       return;
@@ -105,7 +158,7 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
       }
       try {
         if (!parsedUrl.protocol) {
-          let urlString = parsedUrl.path;
+          const urlString = parsedUrl.path;
           fileExists(urlString, (err, exists) => {
             if (me.commandUtil.callbackIfError(cb, err, false)) {
               return;
