@@ -28,13 +28,6 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     options = options || {};
     options.preSpawnMessage = options.preSpawnMessage || '';
     options.postSpawnMessage = options.postSpawnMessage || '';
-    options.showDiagnostics = options.showDiagnostics || false;
-    options.suppressStdErr = options.suppressStdErr || false;
-    options.suppressStdOut = options.suppressStdOut || false;
-    options.cacheStdErr = options.cacheStdErr || false;
-    options.cacheStdOut = options.cacheStdOut || false;
-    options.suppressFinalStats = options.suppressFinalStats || false;
-    options.suppressFinalError = options.suppressFinalError || false;
     options.sudoUser = options.sudoUser || '';
     options.sudoPassword = options.sudoPassword || '';
     options.stdio = options.stdio || 'pipe';
@@ -63,11 +56,12 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       let args = cmd.slice(1);
       let stdoutText = '';
       let stderrText = '';
-      options.showDiagnostics && cbDiagnostic(`Running '${cmd}' @ '${options.cwd}'`);
-      options.showDiagnostics && options.preSpawnMessage && cbDiagnostic(options.preSpawnMessage);
+      if (!options.suppressDiagnostics) {
+        cbDiagnostic(`Running '${cmd}' @ '${options.cwd}'`);
+        options.preSpawnMessage && cbDiagnostic(options.preSpawnMessage);
+      }
       childProcess = spawn(command, args, options);
       childProcess.stderr.on('data', (dataChunk: Uint8Array) => {
-        //console.log('> data on stderr');
         if (options.suppressStdErr && !options.cacheStdErr) {
           return;
         }
@@ -76,7 +70,6 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         options.cacheStdErr && (stderrText += text);
       });
       childProcess.stdout.on('data', (dataChunk: Uint8Array) => {
-        //console.log('> data on stdout');
         if (options.suppressStdOut && !options.cacheStdOut) {
           return;
         }
@@ -88,10 +81,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         cbFinal = SpawnImpl.childCloseOrExit(code, '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
       childProcess.on('exit', (code: number, signal: string) => {
-        cbFinal = SpawnImpl.childCloseOrExit(code, signal, stdoutText, stderrText, options, cbFinal, cbDiagnostic);
+        cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
       childProcess.on('close', (code: number, signal: string) => {
-        cbFinal = SpawnImpl.childCloseOrExit(code, signal, stdoutText, stderrText, options, cbFinal, cbDiagnostic);
+        cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
     } catch (err) {
       cbFinal && cbFinal(err, null);
@@ -107,12 +100,12 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                                   cbFinal: (err: Error, result: string) => void,
                                   cbDiagnostic: (message: string) => void): (err: Error, result: string) => void {
     if (cbFinal) {
-      options.showDiagnostics && options.postSpawnMessage && cbDiagnostic(options.postSpawnMessage);
+      !options.suppressDiagnostics && options.postSpawnMessage && cbDiagnostic(options.postSpawnMessage);
       const returnString = JSON.stringify({code, signal, stdoutText, stderrText}, undefined, 2);
       const error = (code !== null && code !== 0)
         ? new Error(returnString)
         : null;
-      cbFinal(options.suppressFinalError ? null : error, options.suppressFinalStats ? '' : returnString);
+      cbFinal(options.suppressFinalError ? null : error, options.suppressResult ? '' : returnString);
     }
     return null;
   }

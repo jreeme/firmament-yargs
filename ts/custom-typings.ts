@@ -1,6 +1,6 @@
 import {SpawnOptions} from 'child_process';
 export interface SpawnOptions2 extends SpawnOptions{
-  showDiagnostics?:boolean;
+  suppressDiagnostics?:boolean;
   preSpawnMessage?:string;
   postSpawnMessage?:string;
   suppressStdOut?:boolean;
@@ -10,5 +10,5 @@ export interface SpawnOptions2 extends SpawnOptions{
   suppressFinalError?: boolean,
   sudoUser?: string,
   sudoPassword?: string
-  suppressFinalStats?:boolean;
+  suppressResult?:boolean;
 }

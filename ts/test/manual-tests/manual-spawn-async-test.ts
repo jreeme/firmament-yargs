@@ -14,7 +14,7 @@ spawn.spawnShellCommandAsync(
     suppressStdErr: true,
     cacheStdOut: false,
     cacheStdErr: true,
-    suppressFinalStats: true
+    suppressResult: true
   }
   , (err: Error, result: string) => {
     commandUtil.log(result);
