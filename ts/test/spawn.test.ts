@@ -79,7 +79,7 @@ describe('Testing Spawn Creation/Force Error', () => {
   });
 });
 
-describe.only('Testing Spawn ', () => {
+describe('Testing Spawn ', () => {
   let spawn: Spawn;
   let argArray: string[];
   let spawnOptions: SpawnOptions2;
@@ -118,7 +118,7 @@ describe.only('Testing Spawn ', () => {
   afterEach(() => {
     sinonSandbox.restore();
   });
-  xit('no result, exit with code 0', (done) => {
+  it('no result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawn.spawnShellCommandAsync(
       argArray,
@@ -135,7 +135,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('no result, yes diagnostics, exit with code 0', (done) => {
+  it('no result, yes diagnostics, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressDiagnostics = false;
     spawn.spawnShellCommandAsync(
@@ -153,7 +153,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('yes result, exit with code 0', (done) => {
+  it('yes result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressResult = false;
     spawn.spawnShellCommandAsync(
@@ -171,7 +171,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('no result, no finalError, exit with code 3', (done) => {
+  it('no result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawn.spawnShellCommandAsync(
@@ -189,7 +189,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('no result, yes finalError, exit with code 3', (done) => {
+  it('no result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -208,7 +208,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('yes result, yes finalError, exit with code 3', (done) => {
+  it('yes result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -228,7 +228,7 @@ describe.only('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('yes result, no finalError, exit with code 3', (done) => {
+  it('yes result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressResult = false;
@@ -251,6 +251,26 @@ describe.only('Testing Spawn ', () => {
     spawnOptions.suppressStdOut = false;
     spawnOptions.suppressStdErr = false;
     spawnOptions.suppressResult = false;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      cbStatusMock,
+      (err, result) => {
+        expect(err).to.not.exist;
+        const concatArgs = testArgs.join('');
+        checkResult(result, 0, '', concatArgs, concatArgs);
+        expect(cbStdErrSpy.called).to.be.true;
+        expect(cbStdOutSpy.called).to.be.true;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it('edge: yes suppressStdErr, no cacheStdErr', (done) => {
+    spawnOptions.suppressResult = false;
+    spawnOptions.cacheStdOut = false;
+    spawnOptions.cacheStdErr = false;
     spawn.spawnShellCommandAsync(
       argArray,
       spawnOptions,
