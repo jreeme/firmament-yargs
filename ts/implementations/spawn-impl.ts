@@ -25,6 +25,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                                                cbDiagnostic: (message: string) => void = null) {
     const me = this;
     cmd = cmd || [];
+    cmd = cmd.slice(0);
     options = options || {};
     options.preSpawnMessage = options.preSpawnMessage || '';
     options.postSpawnMessage = options.postSpawnMessage || '';
@@ -110,26 +111,28 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return null;
   }
 
-  sudoSpawnAsync(cmd: string[],
-                 options: SpawnOptions2,
-                 cbStatus: (err: Error, result: string) => void,
-                 cbFinal: (err: Error, result: string) => void,
-                 cbDiagnostic: (message: string) => void = null) {
-    let me = this;
-    let prompt = '#node-sudo-passwd#';
-    let prompts = 0;
-    let args = ['-S', '-p', prompt];
+  sudoSpawnAsync(_cmd: string[],
+                 _options: SpawnOptions2,
+                 _cbStatus: (err: Error, result: string) => void,
+                 _cbFinal: (err: Error, result: string) => void,
+                 _cbDiagnostic: (message: string) => void = null) {
+    const me = this;
+    let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
+      = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
+    if (me.checkForceError('sudoSpawnAsync', cbFinal)) {
+      return;
+    }
+    const prompt = '#node-sudo-passwd#';
+    const args = ['-S', '-p', prompt];
     if (options.sudoUser) {
       args.unshift(`--user=${options.sudoUser}`);
     }
-    cmd = cmd || [];
-    cmd = cmd.slice(0);
     [].push.apply(args, cmd);
-    let path = process.env['PATH'].split(':');
-    let sudoBin = inpathSync('sudo', path);
+    const path = process.env['PATH'].split(':');
+    const sudoBin = inpathSync('sudo', path);
     args.unshift(sudoBin);
 
-    let child: ChildProcess = me.spawnShellCommandAsync(
+    const childProcess: ChildProcess = me.spawnShellCommandAsync(
       args,
       options,
       (err, result) => {
@@ -138,9 +141,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         }
         cbStatus(err, result);
       },
-      cbFinal);
+      cbFinal,
+      cbDiagnostic);
 
-    if (!child) {
+    if (!childProcess) {
       //In this case spawnShellCommandAsync should handle the error callbacks
       return;
     }
@@ -150,39 +154,46 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         throw new Error(`Error spawning process`);
       }
       if (children && children.length) {
-        child.stderr.removeAllListeners();
+        childProcess.stderr.removeAllListeners();
       } else {
         setTimeout(function () {
-          psTree(child.pid, waitForStartup);
+          psTree(childProcess.pid, waitForStartup);
         }, 100);
       }
     }
 
-    psTree(child.pid, waitForStartup);
+    psTree(childProcess.pid, waitForStartup);
 
-    child.stderr.on('data', function (data) {
-      let lines = data.toString().trim().split('\n');
+    let prompts = 0;
+    childProcess.stderr.on('data', function (data) {
+      const lines = data.toString().trim().split('\n');
       lines.forEach(function (line) {
         if (line === prompt) {
           if (++prompts > 1) {
             // The previous entry must have been incorrect, since sudo asks again.
             me.cachedPassword = null;
           }
-          let username = require('username').sync();
-          let loginMessage = (prompts > 1)
+          const username = require('username').sync();
+          const loginMessage = (prompts > 1)
             ? `Sorry, try again.\n[sudo] password for ${username}: `
             : `[sudo] password for ${username}: `;
 
           if (!me.cachedPassword) {
-            me.cachedPassword = options.sudoPassword
-              ? options.sudoPassword
-              : readlineSync.question(loginMessage, {hideEchoBack: true});
+            if (options.sudoPassword) {
+              me.cachedPassword = options.sudoPassword;
+            } else {
+              try {
+                me.cachedPassword = readlineSync.question(loginMessage, {hideEchoBack: true});
+              } catch (err) {
+                childProcess.kill();
+              }
+            }
           }
-          child.stdin.write(me.cachedPassword + '\n');
+          childProcess.stdin.write(me.cachedPassword + '\n');
         }
       });
     });
-    return child;
+    return childProcess;
   }
 }
 

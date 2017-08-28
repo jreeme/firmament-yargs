@@ -46,7 +46,9 @@ function getNewSpawnOptions(): SpawnOptions2 {
     cacheStdErr: true,
     cacheStdOut: true,
     suppressResult: true,
-    suppressFinalError: true
+    suppressFinalError: true,
+    sudoUser: '',
+    sudoPassword: ''
   });
 }
 
@@ -62,12 +64,12 @@ function getArgArray(): string[] {
 }
 
 describe('Testing Spawn Creation/Force Error', () => {
-  it('should be created by kernel', (done) => {
+  xit('should be created by kernel', (done) => {
     const spawn = kernel.get<Spawn>('Spawn');
     expect(spawn).to.exist;
     done();
   });
-  it('should have final callback with error', (done) => {
+  xit('should have final callback with error', (done) => {
     const spawn = kernel.get<Spawn>('Spawn');
     spawn.forceError = true;
     spawn.spawnShellCommandAsync(null, null, null,
@@ -118,7 +120,81 @@ describe('Testing Spawn ', () => {
   afterEach(() => {
     sinonSandbox.restore();
   });
-  it('no result, exit with code 0', (done) => {
+  xit('spawnShellCommandAsync: undefined options, exit with code 0', (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions = undefined;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.not.exist;
+        checkResult(result);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  xit('spawnShellCommandAsync: null options, exit with code 0', (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions = null;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.not.exist;
+        checkResult(result);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  xit('spawnShellCommandAsync: null options, undefined arguments exit with code 0', (done) => {
+    argArray = undefined;
+    spawnOptions = null;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.exist;
+        expect(err.message).to.equal('Bad argument');
+        expect(result).to.not.exist;
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  xit('spawnShellCommandAsync: null options, null arguments exit with code 0', (done) => {
+    argArray = null;
+    spawnOptions = null;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.exist;
+        expect(err.message).to.equal('Bad argument');
+        expect(result).to.not.exist;
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  xit('spawnShellCommandAsync: no result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawn.spawnShellCommandAsync(
       argArray,
@@ -135,7 +211,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('no result, yes diagnostics, exit with code 0', (done) => {
+  xit('spawnShellCommandAsync: no result, yes diagnostics, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressDiagnostics = false;
     spawn.spawnShellCommandAsync(
@@ -153,7 +229,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('yes result, exit with code 0', (done) => {
+  xit('spawnShellCommandAsync: yes result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressResult = false;
     spawn.spawnShellCommandAsync(
@@ -171,7 +247,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('no result, no finalError, exit with code 3', (done) => {
+  xit('spawnShellCommandAsync: no result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawn.spawnShellCommandAsync(
@@ -189,7 +265,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('no result, yes finalError, exit with code 3', (done) => {
+  xit('spawnShellCommandAsync: no result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -208,7 +284,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('yes result, yes finalError, exit with code 3', (done) => {
+  xit('spawnShellCommandAsync: yes result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -228,7 +304,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('yes result, no finalError, exit with code 3', (done) => {
+  xit('spawnShellCommandAsync: yes result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressResult = false;
@@ -247,7 +323,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('yes result, no finalError, yes stdout, yes stderr, exit with code 0', (done) => {
+  xit('spawnShellCommandAsync: yes result, no finalError, yes stdout, yes stderr, exit with code 0', (done) => {
     spawnOptions.suppressStdOut = false;
     spawnOptions.suppressStdErr = false;
     spawnOptions.suppressResult = false;
@@ -267,7 +343,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it('edge: yes suppressStdErr, no cacheStdErr', (done) => {
+  xit('spawnShellCommandAsync: edge: yes suppressStdErr, no cacheStdErr', (done) => {
     spawnOptions.suppressResult = false;
     spawnOptions.cacheStdOut = false;
     spawnOptions.cacheStdErr = false;
@@ -286,7 +362,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it(`edge: fire 'error' event on child process`, (done) => {
+  xit(`spawnShellCommandAsync:edge: fire 'error' event on child process`, (done) => {
     spawnOptions.suppressResult = false;
     spawnOptions.suppressFinalError = false;
     const cp = spawn.spawnShellCommandAsync(
@@ -305,7 +381,7 @@ describe('Testing Spawn ', () => {
     );
     cp.emit('error', 30, 'SIGUSR1');
   });
-  it(`edge: fire 'error' event on child process`, (done) => {
+  xit(`spawnShellCommandAsync:edge: EACCES on bad cmd`, (done) => {
     argArray[0] = '/';
     spawnOptions.suppressResult = false;
     spawnOptions.suppressFinalError = false;
@@ -321,6 +397,42 @@ describe('Testing Spawn ', () => {
         expect(cbStdErrSpy.called).to.be.false;
         expect(cbStdOutSpy.called).to.be.false;
         expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: forceError `, (done) => {
+    spawn.forceError = true;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.exist;
+        expect(err.message).to.equal('force error: sudoSpawnAsync');
+        expect(result).to.not.exist;
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: spawnOptions is undefined, `, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions = undefined;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.not.exist;
+        checkResult(result);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
         done();
       },
       o.cbDiagnostic
