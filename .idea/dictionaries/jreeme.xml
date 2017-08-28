@@ -4,7 +4,9 @@
       <w>accum</w>
       <w>crypton</w>
       <w>debounce</w>
+      <w>eacces</w>
       <w>enoent</w>
+      <w>errno</w>
       <w>grindel</w>
       <w>inpath</w>
       <w>jsnlog</w>
@@ -13,6 +15,7 @@
       <w>passwd</w>
       <w>pidof</w>
       <w>readline</w>
+      <w>sigusr</w>
       <w>sinon</w>
       <w>stdin</w>
       <w>subdir</w>

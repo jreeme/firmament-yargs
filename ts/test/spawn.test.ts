@@ -277,10 +277,49 @@ describe('Testing Spawn ', () => {
       cbStatusMock,
       (err, result) => {
         expect(err).to.not.exist;
-        const concatArgs = testArgs.join('');
-        checkResult(result, 0, '', concatArgs, concatArgs);
-        expect(cbStdErrSpy.called).to.be.true;
-        expect(cbStdOutSpy.called).to.be.true;
+        checkResult(result);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`edge: fire 'error' event on child process`, (done) => {
+    spawnOptions.suppressResult = false;
+    spawnOptions.suppressFinalError = false;
+    const cp = spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        checkResult(result, 30, 'SIGUSR1');
+        checkError(err, 30, 'SIGUSR1');
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+    cp.emit('error', 30, 'SIGUSR1');
+  });
+  it(`edge: fire 'error' event on child process`, (done) => {
+    argArray[0] = '/';
+    spawnOptions.suppressResult = false;
+    spawnOptions.suppressFinalError = false;
+    spawn.spawnShellCommandAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(result).to.not.exist;
+        expect(err['code']).to.equal('EACCES');
+        expect(err['errno']).to.equal('EACCES');
+        expect(err.message).to.equal('spawn EACCES');
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
         expect(cbDiagnosticSpy.called).to.be.false;
         done();
       },

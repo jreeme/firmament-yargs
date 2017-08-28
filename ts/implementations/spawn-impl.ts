@@ -77,8 +77,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         !options.suppressStdOut && cbStatus(null, text);
         options.cacheStdOut && (stdoutText += text);
       });
-      childProcess.on('error', (code: number) => {
-        cbFinal = SpawnImpl.childCloseOrExit(code, '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
+      childProcess.on('error', (code: number, signal: string) => {
+        cbFinal = SpawnImpl.childCloseOrExit(code || 10, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
       childProcess.on('exit', (code: number, signal: string) => {
         cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);

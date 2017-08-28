@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 case $1 in
   writeToStdOutErrExitWithErrCode)
     counter=1
@@ -15,7 +16,7 @@ case $1 in
           #echo String sent to stderr >&2
           printf "$arg" >&2
         fi
-        sleep 1
+        #sleep 1
       fi
       ((counter++))
     done
