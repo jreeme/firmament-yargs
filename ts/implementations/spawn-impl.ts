@@ -53,6 +53,9 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
     let childProcess: ChildProcess;
     try {
+      if (options.forceNullChildProcess) {
+        throw new Error('error: forceNullChildProcess');
+      }
       let command = cmd[0];
       let args = cmd.slice(1);
       let stdoutText = '';
@@ -111,6 +114,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return null;
   }
 
+
   sudoSpawnAsync(_cmd: string[],
                  _options: SpawnOptions2,
                  _cbStatus: (err: Error, result: string) => void,
@@ -136,12 +140,28 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       args,
       options,
       (err, result) => {
-        if (err && err.message === prompt) {
-          return;
+        //sudo asks for password on stderr so if the prompt is on one of the lines don't call cbStatus
+        //(caller doesn't care about feedback from sudo, only the program being run under sudo)
+        if (err) {
+          try {
+            const lines = result.toString().trim().split('\n');
+            for (let i = 0; i < lines.length; ++i) {
+              if (lines[i] === prompt) {
+                return;
+              }
+            }
+          } catch (err) {
+          }
         }
         cbStatus(err, result);
       },
-      cbFinal,
+      (err, result) => {
+        if (result) {
+          const regex = new RegExp(prompt, 'g');
+          result = result.replace(regex, '');
+        }
+        cbFinal(err, result);
+      },
       cbDiagnostic);
 
     if (!childProcess) {
@@ -186,6 +206,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                 me.cachedPassword = readlineSync.question(loginMessage, {hideEchoBack: true});
               } catch (err) {
                 childProcess.kill();
+                return;
               }
             }
           }

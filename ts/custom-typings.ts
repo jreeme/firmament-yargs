@@ -10,5 +10,6 @@ export interface SpawnOptions2 extends SpawnOptions{
   suppressResult?:boolean;
   suppressFinalError?: boolean,
   sudoUser?: string,
-  sudoPassword?: string
+  sudoPassword?: string,
+  forceNullChildProcess?:boolean
 }

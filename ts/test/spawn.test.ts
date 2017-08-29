@@ -48,7 +48,8 @@ function getNewSpawnOptions(): SpawnOptions2 {
     suppressResult: true,
     suppressFinalError: true,
     sudoUser: '',
-    sudoPassword: ''
+    sudoPassword: '',
+    forceNullChildProcess: false
   });
 }
 
@@ -64,12 +65,12 @@ function getArgArray(): string[] {
 }
 
 describe('Testing Spawn Creation/Force Error', () => {
-  xit('should be created by kernel', (done) => {
+  it('should be created by kernel', (done) => {
     const spawn = kernel.get<Spawn>('Spawn');
     expect(spawn).to.exist;
     done();
   });
-  xit('should have final callback with error', (done) => {
+  it('should have final callback with error', (done) => {
     const spawn = kernel.get<Spawn>('Spawn');
     spawn.forceError = true;
     spawn.spawnShellCommandAsync(null, null, null,
@@ -120,7 +121,7 @@ describe('Testing Spawn ', () => {
   afterEach(() => {
     sinonSandbox.restore();
   });
-  xit('spawnShellCommandAsync: undefined options, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: undefined options, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions = undefined;
     spawn.spawnShellCommandAsync(
@@ -138,7 +139,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: null options, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: null options, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions = null;
     spawn.spawnShellCommandAsync(
@@ -156,7 +157,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: null options, undefined arguments exit with code 0', (done) => {
+  it('spawnShellCommandAsync: null options, undefined arguments exit with code 0', (done) => {
     argArray = undefined;
     spawnOptions = null;
     spawn.spawnShellCommandAsync(
@@ -175,7 +176,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: null options, null arguments exit with code 0', (done) => {
+  it('spawnShellCommandAsync: null options, null arguments exit with code 0', (done) => {
     argArray = null;
     spawnOptions = null;
     spawn.spawnShellCommandAsync(
@@ -194,7 +195,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: no result, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: no result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawn.spawnShellCommandAsync(
       argArray,
@@ -211,7 +212,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: no result, yes diagnostics, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: no result, yes diagnostics, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressDiagnostics = false;
     spawn.spawnShellCommandAsync(
@@ -229,7 +230,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: yes result, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: yes result, exit with code 0', (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions.suppressResult = false;
     spawn.spawnShellCommandAsync(
@@ -247,7 +248,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: no result, no finalError, exit with code 3', (done) => {
+  it('spawnShellCommandAsync: no result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawn.spawnShellCommandAsync(
@@ -265,7 +266,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: no result, yes finalError, exit with code 3', (done) => {
+  it('spawnShellCommandAsync: no result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -284,7 +285,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: yes result, yes finalError, exit with code 3', (done) => {
+  it('spawnShellCommandAsync: yes result, yes finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressFinalError = false;
@@ -304,7 +305,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: yes result, no finalError, exit with code 3', (done) => {
+  it('spawnShellCommandAsync: yes result, no finalError, exit with code 3', (done) => {
     argArray[1] = 'exitWithErrCode';
     argArray[2] = '3';
     spawnOptions.suppressResult = false;
@@ -323,7 +324,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: yes result, no finalError, yes stdout, yes stderr, exit with code 0', (done) => {
+  it('spawnShellCommandAsync: yes result, no finalError, yes stdout, yes stderr, exit with code 0', (done) => {
     spawnOptions.suppressStdOut = false;
     spawnOptions.suppressStdErr = false;
     spawnOptions.suppressResult = false;
@@ -343,7 +344,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit('spawnShellCommandAsync: edge: yes suppressStdErr, no cacheStdErr', (done) => {
+  it('spawnShellCommandAsync: edge: yes suppressStdErr, no cacheStdErr', (done) => {
     spawnOptions.suppressResult = false;
     spawnOptions.cacheStdOut = false;
     spawnOptions.cacheStdErr = false;
@@ -362,7 +363,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit(`spawnShellCommandAsync:edge: fire 'error' event on child process`, (done) => {
+  it(`spawnShellCommandAsync:edge: fire 'error' event on child process`, (done) => {
     spawnOptions.suppressResult = false;
     spawnOptions.suppressFinalError = false;
     const cp = spawn.spawnShellCommandAsync(
@@ -381,7 +382,7 @@ describe('Testing Spawn ', () => {
     );
     cp.emit('error', 30, 'SIGUSR1');
   });
-  xit(`spawnShellCommandAsync:edge: EACCES on bad cmd`, (done) => {
+  it(`spawnShellCommandAsync:edge: EACCES on bad cmd`, (done) => {
     argArray[0] = '/';
     spawnOptions.suppressResult = false;
     spawnOptions.suppressFinalError = false;
@@ -402,7 +403,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit(`sudoSpawnAsync: forceError `, (done) => {
+  it(`sudoSpawnAsync: forceError `, (done) => {
     spawn.forceError = true;
     spawn.sudoSpawnAsync(
       argArray,
@@ -420,7 +421,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit(`sudoSpawnAsync: spawnOptions is undefined, `, (done) => {
+  it(`sudoSpawnAsync: spawnOptions is undefined, `, (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions = undefined;
     spawn.sudoSpawnAsync(
@@ -438,7 +439,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  xit(`sudoSpawnAsync: spawnOptions is null, `, (done) => {
+  it(`sudoSpawnAsync: spawnOptions is null, `, (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions = null;
     spawn.sudoSpawnAsync(
@@ -456,28 +457,99 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it(`sudoSpawnAsync: invalid username/password in options `, (done) => {
+  it(`sudoSpawnAsync: non-existent user should return error`, (done) => {
     argArray[1] = 'exitWithErrCode';
-    spawnOptions.sudoUser = 'vagrant';
-    spawnOptions.sudoPassword = 'poopword';
-    spawnOptions.cacheStdErr = true;
-    spawnOptions.cacheStdOut = true;
-    spawnOptions.suppressStdErr = false;
-    spawnOptions.suppressStdOut = false;
-    spawnOptions.suppressResult = false;
+    spawnOptions.sudoUser = 'poopuser';
+    spawnOptions.sudoPassword = 'pooppassword';
     spawnOptions.suppressFinalError = false;
-    //spawnOptions.shell = true;
-
+    spawnOptions.suppressStdErr = false;
+    spawnOptions.suppressResult = false;
     spawn.sudoSpawnAsync(
       argArray,
       spawnOptions,
       o.cbStatus,
       (err, result) => {
-        checkError(err, 1);
-        checkResult(result, 1);
+        const stdErr = 'sudo: unknown user: poopuser\nsudo: unable to initialize policy plugin\n';
+        checkError(err, 1, '', '', stdErr);
+        checkResult(result, 1, '', '', stdErr);
         expect(cbStdErrSpy.called).to.be.false;
         expect(cbStdOutSpy.called).to.be.false;
-        expect(cbDiagnosticSpy.called).to.be.true;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: existing user but bad password should return error`, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions.sudoUser = 'vagrant';
+    spawnOptions.sudoPassword = 'pooppassword';
+    spawnOptions.suppressFinalError = false;
+    spawnOptions.suppressStdErr = false;
+    spawnOptions.suppressResult = false;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        const errStdErr =
+          '#login-prompt#Sorry, try again.\n' +
+          '#login-prompt#Sorry, try again.\n' +
+          '#login-prompt#sudo: 3 incorrect password attempts\n';
+        const resultStdErr =
+          'Sorry, try again.\n' +
+          'Sorry, try again.\n' +
+          'sudo: 3 incorrect password attempts\n';
+        checkError(err, 1, '', '', errStdErr);
+        checkResult(result, 1, '', '', resultStdErr);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: forceNullChildProcess should return error`, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions.sudoUser = 'vagrant';
+    spawnOptions.sudoPassword = 'pooppassword';
+    spawnOptions.suppressFinalError = false;
+    spawnOptions.suppressStdErr = false;
+    spawnOptions.suppressResult = false;
+    spawnOptions.forceNullChildProcess = true;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(result).to.not.exist;
+        expect(err.message).to.be.equal('error: forceNullChildProcess');
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: existing user and good password`, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions.sudoUser = 'vagrant';
+    spawnOptions.sudoPassword = 'password';
+    spawnOptions.suppressFinalError = false;
+    spawnOptions.suppressStdErr = false;
+    spawnOptions.suppressResult = false;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        expect(err).to.not.exist;
+        checkResult(result);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.false;
         done();
       },
       o.cbDiagnostic
