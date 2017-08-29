@@ -402,7 +402,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it(`sudoSpawnAsync: forceError `, (done) => {
+  xit(`sudoSpawnAsync: forceError `, (done) => {
     spawn.forceError = true;
     spawn.sudoSpawnAsync(
       argArray,
@@ -420,7 +420,7 @@ describe('Testing Spawn ', () => {
       o.cbDiagnostic
     );
   });
-  it(`sudoSpawnAsync: spawnOptions is undefined, `, (done) => {
+  xit(`sudoSpawnAsync: spawnOptions is undefined, `, (done) => {
     argArray[1] = 'exitWithErrCode';
     spawnOptions = undefined;
     spawn.sudoSpawnAsync(
@@ -428,8 +428,53 @@ describe('Testing Spawn ', () => {
       spawnOptions,
       o.cbStatus,
       (err, result) => {
-        expect(err).to.not.exist;
-        checkResult(result);
+        checkError(err, 1);
+        checkResult(result, 1);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  xit(`sudoSpawnAsync: spawnOptions is null, `, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions = null;
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        checkError(err, 1);
+        checkResult(result, 1);
+        expect(cbStdErrSpy.called).to.be.false;
+        expect(cbStdOutSpy.called).to.be.false;
+        expect(cbDiagnosticSpy.called).to.be.true;
+        done();
+      },
+      o.cbDiagnostic
+    );
+  });
+  it(`sudoSpawnAsync: invalid username/password in options `, (done) => {
+    argArray[1] = 'exitWithErrCode';
+    spawnOptions.sudoUser = 'vagrant';
+    spawnOptions.sudoPassword = 'poopword';
+    spawnOptions.cacheStdErr = true;
+    spawnOptions.cacheStdOut = true;
+    spawnOptions.suppressStdErr = false;
+    spawnOptions.suppressStdOut = false;
+    spawnOptions.suppressResult = false;
+    spawnOptions.suppressFinalError = false;
+    //spawnOptions.shell = true;
+
+    spawn.sudoSpawnAsync(
+      argArray,
+      spawnOptions,
+      o.cbStatus,
+      (err, result) => {
+        checkError(err, 1);
+        checkResult(result, 1);
         expect(cbStdErrSpy.called).to.be.false;
         expect(cbStdOutSpy.called).to.be.false;
         expect(cbDiagnosticSpy.called).to.be.true;

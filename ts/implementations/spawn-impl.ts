@@ -122,7 +122,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     if (me.checkForceError('sudoSpawnAsync', cbFinal)) {
       return;
     }
-    const prompt = '#node-sudo-passwd#';
+    const prompt = '#login-prompt#';
     const args = ['-S', '-p', prompt];
     if (options.sudoUser) {
       args.unshift(`--user=${options.sudoUser}`);
@@ -174,15 +174,15 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             me.cachedPassword = null;
           }
           const username = require('username').sync();
-          const loginMessage = (prompts > 1)
-            ? `Sorry, try again.\n[sudo] password for ${username}: `
-            : `[sudo] password for ${username}: `;
-
           if (!me.cachedPassword) {
             if (options.sudoPassword) {
               me.cachedPassword = options.sudoPassword;
             } else {
               try {
+                //Try block needed for inappropriate ioctl (usually unit testing or other non-tty invocation)
+                const loginMessage = (prompts > 1)
+                  ? `Sorry, try again.\n[sudo] password for ${username}: `
+                  : `[sudo] password for ${username}: `;
                 me.cachedPassword = readlineSync.question(loginMessage, {hideEchoBack: true});
               } catch (err) {
                 childProcess.kill();

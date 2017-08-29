@@ -7,7 +7,7 @@ let commandUtil = kernel.get<CommandUtil>('CommandUtil');
 spawn.spawnShellCommandAsync(
   ['ls', '-F', '-a', '-l'],
   {
-    showDiagnostics: false,
+    suppressDiagnostics: true,
     //preSpawnMessage: 'PreSpawn -> Hello!',
     //postSpawnMessage: 'PostSpawn -> Hello!',
     suppressStdOut: false,
