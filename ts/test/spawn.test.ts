@@ -6,6 +6,9 @@ import * as _ from 'lodash';
 import path = require('path');
 import {Spawn} from "../interfaces/spawn";
 import {SpawnOptions2} from "../custom-typings";
+import {ChildProcessSpawn} from "../interfaces/child-process-spawn";
+import {MockChildProcessSpawnImpl} from "./injectable-mocks/mock-child-process-spawn-impl";
+import {ChildProcessSpawnImpl} from "../implementations/child-process-spawn-impl";
 
 const pathToScripts = path.resolve(__dirname, '../../ts/test/shell-scripts');
 const testScript = path.resolve(pathToScripts, 'kitchen-sink.sh');
@@ -65,6 +68,12 @@ function getArgArray(): string[] {
 }
 
 describe('Testing Spawn Creation/Force Error', () => {
+  before(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(MockChildProcessSpawnImpl);
+  });
+  after(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(ChildProcessSpawnImpl);
+  });
   it('should be created by kernel', (done) => {
     const spawn = kernel.get<Spawn>('Spawn');
     expect(spawn).to.exist;
@@ -109,7 +118,14 @@ describe('Testing Spawn ', () => {
     cbDiagnostic: () => {
     }
   };
+  before(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(MockChildProcessSpawnImpl);
+  });
+  after(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(ChildProcessSpawnImpl);
+  });
   beforeEach(() => {
+    //kernel.bind<ChildProcessSpawn>('ChildProcessSpawn').to(MockChildProcessSpawnImpl);
     spawn = kernel.get<Spawn>('Spawn');
     argArray = getArgArray();
     spawnOptions = getNewSpawnOptions();

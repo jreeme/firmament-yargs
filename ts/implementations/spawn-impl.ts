@@ -1,9 +1,10 @@
-import {injectable, inject} from "inversify";
+import {injectable, inject} from 'inversify';
 import {Spawn} from '../interfaces/spawn';
 import {ChildProcess, spawn} from 'child_process';
-import {SpawnOptions2} from "../custom-typings";
-import {ForceErrorImpl} from "./force-error-impl";
-import {CommandUtil} from "../interfaces/command-util";
+import {SpawnOptions2} from '../custom-typings';
+import {ForceErrorImpl} from './force-error-impl';
+import {CommandUtil} from '../interfaces/command-util';
+import {ChildProcessSpawn} from '../interfaces/child-process-spawn';
 
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
@@ -14,7 +15,8 @@ const psTree = require('ps-tree');
 export class SpawnImpl extends ForceErrorImpl implements Spawn {
   private cachedPassword: string;
 
-  constructor(@inject('CommandUtil') public commandUtil: CommandUtil) {
+  constructor(@inject('CommandUtil') public commandUtil: CommandUtil,
+              @inject('ChildProcessSpawn') public childProcessSpawn: ChildProcessSpawn) {
     super();
   }
 
@@ -54,6 +56,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let childProcess: ChildProcess;
     try {
       if (options.forceNullChildProcess) {
+        // noinspection ExceptionCaughtLocallyJS
         throw new Error('error: forceNullChildProcess');
       }
       let command = cmd[0];
@@ -64,7 +67,16 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         cbDiagnostic(`Running '${cmd}' @ '${options.cwd}'`);
         options.preSpawnMessage && cbDiagnostic(options.preSpawnMessage);
       }
-      childProcess = spawn(command, args, options);
+      try {
+        childProcess = me.childProcessSpawn.spawn(command, args, options);
+      } catch (err) {
+        if (err.message === 'Path must be a string. Received undefined') {
+          // noinspection ExceptionCaughtLocallyJS
+          throw new Error('Bad argument');
+        }
+        // noinspection ExceptionCaughtLocallyJS
+        throw err;
+      }
       childProcess.stderr.on('data', (dataChunk: Uint8Array) => {
         if (options.suppressStdErr && !options.cacheStdErr) {
           return;

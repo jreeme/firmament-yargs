@@ -1,6 +1,6 @@
 {
   "name": "firmament-yargs",
-  "version": "1.1.9",
+  "version": "1.1.10",
   "description": "Typescript classes for building CLI node applications",
   "main": "js/index.js",
   "typings": "js/index",
@@ -34,6 +34,7 @@
     "@types/sinon": "^2.3.3",
     "chai": "^4.1.1",
     "mocha": "^3.5.0",
+    "mock-spawn": "^0.2.6",
     "nyc": "^11.1.0",
     "sinon": "^3.2.1",
     "typescript": "^2.4.2"
