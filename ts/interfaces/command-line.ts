@@ -6,5 +6,5 @@ export interface CommandLine {
   exec(unitTestArgs?:string[]);
 }
 export interface ConsoleEx extends Console {
-  table:any
+  __table__:any
 }

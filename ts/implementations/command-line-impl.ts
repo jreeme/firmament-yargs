@@ -1,7 +1,7 @@
-import {Command} from "../interfaces/command";
-import {CommandLine, ConsoleEx} from "../interfaces/command-line";
+import {Command} from '..';
+import {CommandLine, ConsoleEx} from '..';
 import {injectable, inject} from 'inversify';
-import {NestedYargs, NestedYargsCategory} from "../interfaces/nested-yargs-wrapper";
+import {NestedYargs, NestedYargsCategory} from '../interfaces/nested-yargs-wrapper';
 declare let console: ConsoleEx;
 
 
@@ -35,7 +35,7 @@ export class CommandLineImpl implements CommandLine {
   }
 
   printTable(rows: any[]) {
-    console.table(rows);
+    console.__table__(rows);
   }
 
   exec(unitTestArgs: string[] = []) {
@@ -46,7 +46,7 @@ export class CommandLineImpl implements CommandLine {
     if (typeof console === 'undefined') {
       throw new Error('Weird, console object is undefined');
     }
-    if (typeof console.table === 'function') {
+    if (typeof console.__table__ === 'function') {
       return;
     }
     let Table = require('easy-table');
@@ -99,8 +99,7 @@ export class CommandLineImpl implements CommandLine {
       return arrayToString(objectToArray(obj));
     }
 
-    console.table = function () {
-      console.log('');
+    console.__table__ = function () {
       let args = Array.prototype.slice.call(arguments);
       if (args.length === 2 &&
         typeof args[0] === 'string' &&
