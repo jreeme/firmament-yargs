@@ -57,6 +57,7 @@
     "request": "^2.81.0",
     "safe-json-parse": "^4.0.0",
     "shorthash": "0.0.2",
+    "tmp": "0.0.33",
     "username": "^3.0.0"
   }
 }
