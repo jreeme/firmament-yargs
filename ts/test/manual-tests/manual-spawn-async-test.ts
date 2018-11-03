@@ -6,7 +6,7 @@ import {CommandUtil} from '../..';
 let spawn = kernel.get<Spawn>('Spawn');
 let commandUtil = kernel.get<CommandUtil>('CommandUtil');
 const cmd = [
-  'ls', '-F', '-a', '-l'
+  'touch', '/tmp/tmp.txt'
 ];
 
 const options:SpawnOptions2 = {
@@ -17,8 +17,8 @@ const options:SpawnOptions2 = {
   suppressStdErr: false,
   cacheStdOut: true,
   cacheStdErr: true,
-  suppressResult: false,
-  remoteHost: 'nfs.parrot-les.keyw',
+  suppressResult: false
+  , remoteHost: 'nfs.parrot-les.keyw',
   remoteUser: 'jreeme',
   remotePassword: 'password'
 };

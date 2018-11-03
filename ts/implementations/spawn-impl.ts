@@ -1,5 +1,5 @@
 import {injectable, inject} from 'inversify';
-import {Spawn} from '..';
+import {FailureRetVal, Positive, SafeJson, Spawn} from '..';
 import {ChildProcess} from 'child_process';
 import {SpawnOptions2} from '../custom-typings';
 import {ForceErrorImpl} from './force-error-impl';
@@ -7,6 +7,7 @@ import {CommandUtil} from '..';
 import {ChildProcessSpawn} from '../interfaces/child-process-spawn';
 import * as async from 'async';
 import * as fs from 'fs';
+import * as path from 'path';
 
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
@@ -18,6 +19,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
   private cachedPassword:string;
 
   constructor(@inject('CommandUtil') public commandUtil:CommandUtil,
+              @inject('SafeJson') private safeJson:SafeJson,
+              @inject('Positive') private positive:Positive,
               @inject('ChildProcessSpawn') public childProcessSpawn:ChildProcessSpawn) {
     super();
   }
@@ -58,6 +61,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
 
     if(!options.remoteHost && !options.remoteUser && !options.remotePassword) {
+      //Execute cmd locally
       return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
     }
     if(!options.remoteHost || !options.remoteUser || !options.remotePassword) {
@@ -65,25 +69,138 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
     //Construct calls to remote host
     const tmp = require('tmp');
-    tmp.file({discardDescriptor: true}, (err:Error, path, fd, cleanupCallback) => {
+    tmp.file({discardDescriptor: true}, (err:Error, tmpPath) => {
       if(err) {
-        cleanupCallback();
         return cbFinal(err, 'Failed to create temporary file');
       }
+      const {remoteHost, remoteUser, remotePassword} = options;
+      const subShellOptions = {
+        suppressDiagnostics: true,
+        suppressStdOut: true,
+        suppressStdErr: true,
+        cacheStdOut: true,
+        cacheStdErr: true,
+        suppressResult: false,
+      };
+      const envBashCmd = [
+        '/usr/bin/env',
+        'bash',
+        '-c'
+      ];
+      const sshpassCmd = [
+        'sshpass',
+        '-p',
+        remotePassword
+      ];
+      const sshpassScpCmd = sshpassCmd.concat([
+        'scp'
+      ]);
+      const sshpassSshCmd = sshpassCmd.concat([
+        'ssh',
+        '-t'
+      ]);
       async.waterfall([
         (cb) => {
           //Construct file to be executed on remote host
-          const writeStream = fs.createWriteStream(path);
+          const writeStream = fs.createWriteStream(tmpPath);
           writeStream.on('close', () => {
             cb();
           });
-          writeStream.write('how now brown cow', () => {
+          writeStream.write(cmd.join(' '), () => {
             writeStream.close();
           });
+        },
+        (cb) => {
+          //Copy file to be executed to remote host using 'scp'
+          const cmd = sshpassScpCmd.concat([
+            tmpPath,
+            `${remoteUser}@${remoteHost}:/tmp`
+          ]);
+          me._spawnShellCommandAsync(
+            cmd,
+            subShellOptions,
+            () => {
+            }, cb);
+        },
+        (result:string, cb) => {
+          //If 'scp' (above) succeeded we feel pretty good about doing a remote 'ssh' call
+          const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpPath}"`);
+          const _cmd = envBashCmd.concat(cmd.join(' '));
+
+          me._spawnShellCommandAsync(
+            _cmd,
+            subShellOptions,
+            (err:Error, result:string) => {
+              me.commandUtil.log(result);
+            },
+            cb);
+        },
+        (result:string, cb) => {
+          //Now clean up the remote script file we just executed
+          const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "rm ${tmpPath}"`);
+          const _cmd = envBashCmd.concat(cmd.join(' '));
+
+          me._spawnShellCommandAsync(
+            _cmd,
+            subShellOptions,
+            (err:Error, result:string) => {
+              me.commandUtil.log(result);
+            },
+            cb);
         }
-      ], (err:Error, result:any) => {
-        cleanupCallback();
-        cbFinal(null, 'OK');
+      ], (outerErr:Error, result:any) => {
+        if(outerErr) {
+          me.safeJson.safeParse(outerErr.message, (err:Error, obj:any) => {
+            try {
+              switch(typeof obj.code) {
+                case('object'):
+                  switch(obj.code.code) {
+                    case('ENOENT'):
+                      if(me.positive.areYouSure(
+                        `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)?`,
+                        'Operation canceled.',
+                        true,
+                        FailureRetVal.TRUE)) {
+                        return me.sudoSpawnAsync(
+                          [
+                            'apt-get',
+                            'install',
+                            '-y',
+                            'sshpass'
+                          ],
+                          {
+                            suppressDiagnostics: true,
+                            suppressStdOut: false,
+                            suppressStdErr: false,
+                            cacheStdOut: false,
+                            cacheStdErr: false,
+                            sudoPassword: 'password',
+                            suppressResult: true,
+                          },
+                          (err:Error, result:string) => {
+                            me.commandUtil.log(result);
+                          },
+                          (err:Error) => {
+                            cbFinal(err, err ? err.message : `'sshpass' installed. Try operation again.`);
+                          });
+                      }
+                      break;
+                    default:
+                      return cbFinal(outerErr, outerErr.message);
+                  }
+                  break;
+                case('number'):
+                  return cbFinal(outerErr, obj.stderrText);
+                default:
+                  return cbFinal(outerErr, outerErr.message);
+              }
+            } catch(err) {
+              cbFinal(err, `Original Error: ${outerErr.message}`);
+            }
+          });
+        } else {
+          cbFinal(null, 'OK');
+        }
       });
     });
   }
