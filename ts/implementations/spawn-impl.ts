@@ -7,7 +7,7 @@ import {CommandUtil} from '..';
 import {ChildProcessSpawn} from '../interfaces/child-process-spawn';
 import * as async from 'async';
 import * as fs from 'fs';
-import * as path from 'path';
+//import * as path from 'path';
 
 const readlineSync = require('readline-sync');
 const inpathSync = require('inpath').sync;
@@ -16,20 +16,20 @@ const psTree = require('ps-tree');
 //noinspection JSUnusedGlobalSymbols
 @injectable()
 export class SpawnImpl extends ForceErrorImpl implements Spawn {
-  private cachedPassword:string;
+  private cachedPassword: string;
 
-  constructor(@inject('CommandUtil') public commandUtil:CommandUtil,
-              @inject('SafeJson') private safeJson:SafeJson,
-              @inject('Positive') private positive:Positive,
-              @inject('ChildProcessSpawn') public childProcessSpawn:ChildProcessSpawn) {
+  constructor(@inject('CommandUtil') public commandUtil: CommandUtil,
+              @inject('SafeJson') private safeJson: SafeJson,
+              @inject('Positive') private positive: Positive,
+              @inject('ChildProcessSpawn') public childProcessSpawn: ChildProcessSpawn) {
     super();
   }
 
-  private validate_spawnShellCommandAsync_args(cmd:string[],
-                                               options:SpawnOptions2,
-                                               cbStatus:(err:Error, result:string) => void,
-                                               cbFinal:(err:Error, result:string) => void,
-                                               cbDiagnostic:(message:string) => void = null) {
+  private validate_spawnShellCommandAsync_args(cmd: string[],
+                                               options: SpawnOptions2,
+                                               cbStatus: (err: Error, result: string) => void,
+                                               cbFinal: (err: Error, result: string) => void,
+                                               cbDiagnostic: (message: string) => void = null) {
     const me = this;
     cmd = cmd || [];
     cmd = cmd.slice(0);
@@ -47,15 +47,16 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return {cmd, options, cbStatus, cbFinal, cbDiagnostic};
   }
 
-  spawnShellCommandAsync(_cmd:string[],
-                         _options:SpawnOptions2,
-                         _cbStatus:(err:Error, result:string) => void,
-                         _cbFinal:(err:Error, result:string) => void,
-                         _cbDiagnostic:(message:string) => void = null) {
-
+  spawnShellCommandAsync(_cmd: string[],
+                         _options: SpawnOptions2,
+                         _cbStatus: (err: Error, result: string) => void,
+                         _cbFinal: (err: Error, result: string) => void,
+                         _cbDiagnostic: (message: string) => void = null) {
     const me = this;
     let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
+    return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
+
     if(me.checkForceError('spawnShellCommandAsync', cbFinal)) {
       return;
     }
@@ -69,7 +70,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     }
     //Construct calls to remote host
     const tmp = require('tmp');
-    tmp.file({discardDescriptor: true}, (err:Error, tmpPath) => {
+    tmp.file({discardDescriptor: true}, (err: Error, tmpPath) => {
       if(err) {
         return cbFinal(err, 'Failed to create temporary file');
       }
@@ -122,7 +123,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             () => {
             }, cb);
         },
-        (result:string, cb) => {
+        (result: string, cb) => {
           //If 'scp' (above) succeeded we feel pretty good about doing a remote 'ssh' call
           const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpPath}"`);
           const _cmd = envBashCmd.concat(cmd.join(' '));
@@ -130,12 +131,12 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
           me._spawnShellCommandAsync(
             _cmd,
             subShellOptions,
-            (err:Error, result:string) => {
+            (err: Error, result: string) => {
               me.commandUtil.log(result);
             },
             cb);
         },
-        (result:string, cb) => {
+        (result: string, cb) => {
           //Now clean up the remote script file we just executed
           const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "rm ${tmpPath}"`);
           const _cmd = envBashCmd.concat(cmd.join(' '));
@@ -143,14 +144,14 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
           me._spawnShellCommandAsync(
             _cmd,
             subShellOptions,
-            (err:Error, result:string) => {
+            (err: Error, result: string) => {
               me.commandUtil.log(result);
             },
             cb);
         }
-      ], (outerErr:Error, result:any) => {
+      ], (outerErr: Error/*, result:any*/) => {
         if(outerErr) {
-          me.safeJson.safeParse(outerErr.message, (err:Error, obj:any) => {
+          me.safeJson.safeParse(outerErr.message, (err: Error, obj: any) => {
             try {
               switch(typeof obj.code) {
                 case('object'):
@@ -177,10 +178,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                             sudoPassword: 'password',
                             suppressResult: true,
                           },
-                          (err:Error, result:string) => {
+                          (err: Error, result: string) => {
                             me.commandUtil.log(result);
                           },
-                          (err:Error) => {
+                          (err: Error) => {
                             cbFinal(err, err ? err.message : `'sshpass' installed. Try operation again.`);
                           });
                       }
@@ -205,13 +206,13 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     });
   }
 
-  private _spawnShellCommandAsync(cmd:string[],
-                                  options:SpawnOptions2,
-                                  cbStatus:(err:Error, result:string) => void,
-                                  cbFinal:(err:Error, result:string) => void,
-                                  cbDiagnostic:(message:string) => void = null) {
+  private _spawnShellCommandAsync(cmd: string[],
+                                  options: SpawnOptions2,
+                                  cbStatus: (err: Error, result: string) => void,
+                                  cbFinal: (err: Error, result: string) => void,
+                                  cbDiagnostic: (message: string) => void = null) {
     const me = this;
-    let childProcess:ChildProcess;
+    let childProcess: ChildProcess;
     try {
       if(options.forceNullChildProcess) {
         // noinspection ExceptionCaughtLocallyJS
@@ -235,7 +236,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         // noinspection ExceptionCaughtLocallyJS
         throw err;
       }
-      childProcess.stderr.on('data', (dataChunk:Uint8Array) => {
+      childProcess.stderr.on('data', (dataChunk: Uint8Array) => {
         if(options.suppressStdErr && !options.cacheStdErr) {
           return;
         }
@@ -243,7 +244,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         !options.suppressStdErr && cbStatus(new Error(text), text);
         options.cacheStdErr && (stderrText += text);
       });
-      childProcess.stdout.on('data', (dataChunk:Uint8Array) => {
+      childProcess.stdout.on('data', (dataChunk: Uint8Array) => {
         if(options.suppressStdOut && !options.cacheStdOut) {
           return;
         }
@@ -251,13 +252,22 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         !options.suppressStdOut && cbStatus(null, text);
         options.cacheStdOut && (stdoutText += text);
       });
-      childProcess.on('error', (code:number, signal:string) => {
+      childProcess.on('error', (code: number, signal: string) => {
+        //console.error('error');
         cbFinal = SpawnImpl.childCloseOrExit(code || 10, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
-      childProcess.on('exit', (code:number, signal:string) => {
-        cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
-      });
-      childProcess.on('close', (code:number, signal:string) => {
+      /*
+      //!!!
+      //!!!BEWARE: Responding to the 'exit' event on a childProcess we the source of a *very* subtle bug having to do with the stdout pipe
+      //!!!not being flushed when the our caller was called back. If you want the results of the call in stdout listen only to the 'close'
+      //!!!to determine when the child process is finished
+      //!!!
+      childProcess.on('exit', (code: number, signal: string) => {
+              console.error('exit');
+              cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
+            });*/
+      childProcess.on('close', (code: number, signal: string) => {
+        //console.error('close');
         cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
     } catch(err) {
@@ -266,13 +276,13 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return childProcess;
   }
 
-  private static childCloseOrExit(code:number,
-                                  signal:string,
-                                  stdoutText:string,
-                                  stderrText:string,
-                                  options:SpawnOptions2,
-                                  cbFinal:(err:Error, result:string) => void,
-                                  cbDiagnostic:(message:string) => void):(err:Error, result:string) => void {
+  private static childCloseOrExit(code: number,
+                                  signal: string,
+                                  stdoutText: string,
+                                  stderrText: string,
+                                  options: SpawnOptions2,
+                                  cbFinal: (err: Error, result: string) => void,
+                                  cbDiagnostic: (message: string) => void): (err: Error, result: string) => void {
     if(cbFinal) {
       !options.suppressDiagnostics && options.postSpawnMessage && cbDiagnostic(options.postSpawnMessage);
       const returnString = JSON.stringify({code, signal, stdoutText, stderrText}, undefined, 2);
@@ -284,11 +294,11 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     return null;
   }
 
-  sudoSpawnAsync(_cmd:string[],
-                 _options:SpawnOptions2,
-                 _cbStatus:(err:Error, result:string) => void,
-                 _cbFinal:(err:Error, result:string) => void,
-                 _cbDiagnostic:(message:string) => void = null) {
+  sudoSpawnAsync(_cmd: string[],
+                 _options: SpawnOptions2,
+                 _cbStatus: (err: Error, result: string) => void,
+                 _cbFinal: (err: Error, result: string) => void,
+                 _cbDiagnostic: (message: string) => void = null) {
     const me = this;
     let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
@@ -305,7 +315,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     const sudoBin = inpathSync('sudo', path);
     args.unshift(sudoBin);
 
-    const childProcess:ChildProcess = me.spawnShellCommandAsync(
+    const childProcess: ChildProcess = me.spawnShellCommandAsync(
       args,
       options,
       (err, result) => {
@@ -338,7 +348,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       return;
     }
 
-    function waitForStartup(err, children:any[]) {
+    function waitForStartup(err, children: any[]) {
       if(err) {
         throw new Error(`Error spawning process`);
       }

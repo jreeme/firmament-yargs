@@ -2,10 +2,45 @@ import 'reflect-metadata';
 import kernel from '../../inversify.config';
 import {Spawn, SpawnOptions2} from '../..';
 import {CommandUtil} from '../..';
+import * as async from 'async';
 
 let spawn = kernel.get<Spawn>('Spawn');
 let commandUtil = kernel.get<CommandUtil>('CommandUtil');
-const cmd = [
+
+async.each([
+  'nfs.parrot-les.keyw'
+  , 'nfs.parrot-les.keyw'
+  , 'nfs.parrot-les.keyw'
+  , 'nfs.parrot-les.keyw'
+], (volume, cb) => {
+  const spawnOptions: SpawnOptions2 = {
+    suppressStdOut: false,
+    suppressStdErr: false,
+    cacheStdOut: true,
+    cacheStdErr: true,
+    suppressResult: false
+    /*          ,remoteHost: dsct.nfsConfig.serverAddr,
+              remoteUser: dsct.nfsConfig.nfsUser,
+              remotePassword: dsct.nfsConfig.nfsPassword*/
+  };
+  spawn.spawnShellCommandAsync(
+    [
+      'showmount',
+      '-e',
+      `${volume}`
+    ],
+    spawnOptions,
+    (err, result) => {
+    },
+    (err: Error, result: string) => {
+      commandUtil.log(result);
+      cb(err)
+    }
+  );
+}, (err) => {
+  commandUtil.log('Finitoed');
+});
+/*const cmd = [
   'touch', '/tmp/tmp.txt'
 ];
 
@@ -36,4 +71,4 @@ spawn.spawnShellCommandAsync(
   (message:string) => {
     commandUtil.log(message);
   }
-);
+);*/
