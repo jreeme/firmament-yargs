@@ -55,12 +55,10 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     const me = this;
     let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
-    return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
 
     if(me.checkForceError('spawnShellCommandAsync', cbFinal)) {
       return;
     }
-
     if(!options.remoteHost && !options.remoteUser && !options.remotePassword) {
       //Execute cmd locally
       return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
