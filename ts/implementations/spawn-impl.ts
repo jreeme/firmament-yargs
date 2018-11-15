@@ -254,16 +254,19 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         //console.error('error');
         cbFinal = SpawnImpl.childCloseOrExit(code || 10, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
-      /*
       //!!!
       //!!!BEWARE: Responding to the 'exit' event on a childProcess we the source of a *very* subtle bug having to do with the stdout pipe
       //!!!not being flushed when the our caller was called back. If you want the results of the call in stdout listen only to the 'close'
       //!!!to determine when the child process is finished
       //!!!
       childProcess.on('exit', (code: number, signal: string) => {
-              console.error('exit');
-              cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
-            });*/
+        //console.error('exit');
+        //We prefer to call cbFinal() from the 'close' event but sometimes (like when spawning 'sudo') you just never get the 'close' event.
+        //Here we wait a second
+        setTimeout(() => {
+          cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
+        }, 1000);
+      });
       childProcess.on('close', (code: number, signal: string) => {
         //console.error('close');
         cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
@@ -313,7 +316,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     const sudoBin = inpathSync('sudo', path);
     args.unshift(sudoBin);
 
-    const childProcess: ChildProcess = me.spawnShellCommandAsync(
+    const childProcess: ChildProcess = me._spawnShellCommandAsync(
       args,
       options,
       (err, result) => {

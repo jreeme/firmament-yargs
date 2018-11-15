@@ -39,12 +39,14 @@ async.each([
   );
 }, (err) => {
   commandUtil.log('Finitoed');
+  commandUtil.processExit(0);
 });
+const cmd = ['npm', 'install', '--save', '--prefix', '/home/jreeme/src/firmament', 'firmament-docker'];
 /*const cmd = [
   'touch', '/tmp/tmp.txt'
-];
+];*/
 
-const options:SpawnOptions2 = {
+/*const options:SpawnOptions2 = {
   suppressDiagnostics: false,
   preSpawnMessage: 'PreSpawn -> Hello!',
   postSpawnMessage: 'PostSpawn -> Hello!',
@@ -56,19 +58,20 @@ const options:SpawnOptions2 = {
   , remoteHost: 'nfs.parrot-les.keyw',
   remoteUser: 'jreeme',
   remotePassword: 'password'
-};
+};*/
 
-spawn.spawnShellCommandAsync(
+//spawn.spawnShellCommandAsync(
+/*spawn.sudoSpawnAsync(
   cmd,
-  options,
-  (err:Error, result:string) => {
+  null,//options,
+  (err: Error, result: string) => {
     commandUtil.log(result);
   },
-  (err:Error, result:string) => {
+  (err: Error, result: string) => {
     commandUtil.log(result);
     commandUtil.processExitWithError(err);//, 'Finished.');
   },
-  (message:string) => {
+  (message: string) => {
     commandUtil.log(message);
   }
 );*/
