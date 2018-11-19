@@ -56,20 +56,20 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
 
-    if(me.checkForceError('spawnShellCommandAsync', cbFinal)) {
+    if (me.checkForceError('spawnShellCommandAsync', cbFinal)) {
       return;
     }
-    if(!options.remoteHost && !options.remoteUser && !options.remotePassword) {
+    if (!options.remoteHost && !options.remoteUser && !options.remotePassword) {
       //Execute cmd locally
       return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
     }
-    if(!options.remoteHost || !options.remoteUser || !options.remotePassword) {
+    if (!options.remoteHost || !options.remoteUser || !options.remotePassword) {
       throw new Error('If any of options.(remoteHost|remoteUser|remotePassword) are specified all must be specified');
     }
     //Construct calls to remote host
     const tmp = require('tmp');
     tmp.file({discardDescriptor: true}, (err: Error, tmpPath) => {
-      if(err) {
+      if (err) {
         return cbFinal(err, 'Failed to create temporary file');
       }
       const {remoteHost, remoteUser, remotePassword} = options;
@@ -92,10 +92,14 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         remotePassword
       ];
       const sshpassScpCmd = sshpassCmd.concat([
-        'scp'
+        'scp',
+        '-o',
+        'StrictHostKeyChecking=no'
       ]);
       const sshpassSshCmd = sshpassCmd.concat([
         'ssh',
+        '-o',
+        'StrictHostKeyChecking=no',
         '-t'
       ]);
       async.waterfall([
@@ -148,14 +152,14 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             cb);
         }
       ], (outerErr: Error/*, result:any*/) => {
-        if(outerErr) {
+        if (outerErr) {
           me.safeJson.safeParse(outerErr.message, (err: Error, obj: any) => {
             try {
-              switch(typeof obj.code) {
+              switch (typeof obj.code) {
                 case('object'):
-                  switch(obj.code.code) {
+                  switch (obj.code.code) {
                     case('ENOENT'):
-                      if(me.positive.areYouSure(
+                      if (me.positive.areYouSure(
                         `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)?`,
                         'Operation canceled.',
                         true,
@@ -193,7 +197,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                 default:
                   return cbFinal(outerErr, outerErr.message);
               }
-            } catch(err) {
+            } catch (err) {
               cbFinal(err, `Original Error: ${outerErr.message}`);
             }
           });
@@ -212,7 +216,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     const me = this;
     let childProcess: ChildProcess;
     try {
-      if(options.forceNullChildProcess) {
+      if (options.forceNullChildProcess) {
         // noinspection ExceptionCaughtLocallyJS
         throw new Error('error: forceNullChildProcess');
       }
@@ -220,14 +224,14 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       let args = cmd.slice(1);
       let stdoutText = '';
       let stderrText = '';
-      if(!options.suppressDiagnostics) {
+      if (!options.suppressDiagnostics) {
         cbDiagnostic(`Running '${cmd}' @ '${options.cwd}'`);
         options.preSpawnMessage && cbDiagnostic(options.preSpawnMessage);
       }
       try {
         childProcess = me.childProcessSpawn.spawn(command, args, options);
-      } catch(err) {
-        if(err.message === 'Path must be a string. Received undefined') {
+      } catch (err) {
+        if (err.message === 'Path must be a string. Received undefined') {
           // noinspection ExceptionCaughtLocallyJS
           throw new Error('Bad argument');
         }
@@ -235,7 +239,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         throw err;
       }
       childProcess.stderr.on('data', (dataChunk: Uint8Array) => {
-        if(options.suppressStdErr && !options.cacheStdErr) {
+        if (options.suppressStdErr && !options.cacheStdErr) {
           return;
         }
         const text = dataChunk.toString();
@@ -243,7 +247,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         options.cacheStdErr && (stderrText += text);
       });
       childProcess.stdout.on('data', (dataChunk: Uint8Array) => {
-        if(options.suppressStdOut && !options.cacheStdOut) {
+        if (options.suppressStdOut && !options.cacheStdOut) {
           return;
         }
         const text = dataChunk.toString();
@@ -271,7 +275,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         //console.error('close');
         cbFinal = SpawnImpl.childCloseOrExit(code, signal || '', stdoutText, stderrText, options, cbFinal, cbDiagnostic);
       });
-    } catch(err) {
+    } catch (err) {
       cbFinal && cbFinal(err, null);
     }
     return childProcess;
@@ -284,7 +288,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                                   options: SpawnOptions2,
                                   cbFinal: (err: Error, result: string) => void,
                                   cbDiagnostic: (message: string) => void): (err: Error, result: string) => void {
-    if(cbFinal) {
+    if (cbFinal) {
       !options.suppressDiagnostics && options.postSpawnMessage && cbDiagnostic(options.postSpawnMessage);
       const returnString = JSON.stringify({code, signal, stdoutText, stderrText}, undefined, 2);
       const error = (code !== null && code !== 0)
@@ -303,12 +307,12 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     const me = this;
     let {cmd, options, cbStatus, cbFinal, cbDiagnostic}
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
-    if(me.checkForceError('sudoSpawnAsync', cbFinal)) {
+    if (me.checkForceError('sudoSpawnAsync', cbFinal)) {
       return;
     }
     const prompt = '#login-prompt#';
     const args = ['-S', '-p', prompt];
-    if(options.sudoUser) {
+    if (options.sudoUser) {
       args.unshift(`--user=${options.sudoUser}`);
     }
     [].push.apply(args, cmd);
@@ -322,21 +326,21 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       (err, result) => {
         //sudo asks for password on stderr so if the prompt is on one of the lines don't call cbStatus
         //(caller doesn't care about feedback from sudo, only the program being run under sudo)
-        if(err) {
+        if (err) {
           try {
             const lines = result.toString().trim().split('\n');
-            for(let i = 0; i < lines.length; ++i) {
-              if(lines[i] === prompt) {
+            for (let i = 0; i < lines.length; ++i) {
+              if (lines[i] === prompt) {
                 return;
               }
             }
-          } catch(err) {
+          } catch (err) {
           }
         }
         cbStatus(err, result);
       },
       (err, result) => {
-        if(result) {
+        if (result) {
           const regex = new RegExp(prompt, 'g');
           result = result.replace(regex, '');
         }
@@ -344,19 +348,19 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       },
       cbDiagnostic);
 
-    if(!childProcess) {
+    if (!childProcess) {
       //In this case spawnShellCommandAsync should handle the error callbacks
       return;
     }
 
     function waitForStartup(err, children: any[]) {
-      if(err) {
+      if (err) {
         throw new Error(`Error spawning process`);
       }
-      if(children && children.length) {
+      if (children && children.length) {
         childProcess.stderr.removeAllListeners();
       } else {
-        setTimeout(function() {
+        setTimeout(function () {
           psTree(childProcess.pid, waitForStartup);
         }, 100);
       }
@@ -365,17 +369,17 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     psTree(childProcess.pid, waitForStartup);
 
     let prompts = 0;
-    childProcess.stderr.on('data', function(data) {
+    childProcess.stderr.on('data', function (data) {
       const lines = data.toString().trim().split('\n');
-      lines.forEach(function(line) {
-        if(line === prompt) {
-          if(++prompts > 1) {
+      lines.forEach(function (line) {
+        if (line === prompt) {
+          if (++prompts > 1) {
             // The previous entry must have been incorrect, since sudo asks again.
             me.cachedPassword = null;
           }
           const username = require('username').sync();
-          if(!me.cachedPassword) {
-            if(options.sudoPassword) {
+          if (!me.cachedPassword) {
+            if (options.sudoPassword) {
               me.cachedPassword = options.sudoPassword;
             } else {
               try {
@@ -384,7 +388,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                   ? `Sorry, try again.\n[sudo] password for ${username}: `
                   : `[sudo] password for ${username}: `;
                 me.cachedPassword = readlineSync.question(loginMessage, {hideEchoBack: true});
-              } catch(err) {
+              } catch (err) {
                 childProcess.kill();
                 return;
               }

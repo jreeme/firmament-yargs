@@ -1,6 +1,6 @@
 import {ChildProcess} from 'child_process';
-import {ForceError} from "./force-error";
-import {SpawnOptions2} from "../custom-typings";
+import {ForceError} from './force-error';
+import {SpawnOptions2} from '../custom-typings';
 export interface Spawn extends ForceError {
   spawnShellCommandAsync(cmd: string[],
                          options: SpawnOptions2,

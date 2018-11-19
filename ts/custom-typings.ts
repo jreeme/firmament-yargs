@@ -9,11 +9,11 @@ export interface SpawnOptions2 extends SpawnOptions {
   cacheStdErr?:boolean;
   cacheStdOut?:boolean;
   suppressResult?:boolean;
-  suppressFinalError?:boolean,
-  sudoUser?:string,
-  sudoPassword?:string,
-  forceNullChildProcess?:boolean,
-  remoteHost?:string,
-  remoteUser?:string,
-  remotePassword?:string
+  suppressFinalError?:boolean;
+  sudoUser?:string;
+  sudoPassword?:string;
+  forceNullChildProcess?:boolean;
+  remoteHost?:string;
+  remoteUser?:string;
+  remotePassword?:string;
 }
