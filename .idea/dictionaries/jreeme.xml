@@ -3,6 +3,7 @@
     <words>
       <w>accum</w>
       <w>crypton</w>
+      <w>ctor</w>
       <w>debounce</w>
       <w>eacces</w>
       <w>enoent</w>
@@ -12,6 +13,7 @@
       <w>jreeme</w>
       <w>jsnlog</w>
       <w>keyw</w>
+      <w>linter</w>
       <w>lodash</w>
       <w>luvin</w>
       <w>ovftool</w>
@@ -30,6 +32,7 @@
       <w>testout</w>
       <w>unsubscribe</w>
       <w>uptime</w>
+      <w>yargs</w>
     </words>
   </dictionary>
 </component>

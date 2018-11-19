@@ -27,25 +27,26 @@
     "@types/async": "^2.0.42",
     "@types/chai": "^4.0.4",
     "@types/lodash": "^4.14.74",
-    "@types/mocha": "^2.2.42",
-    "@types/node": "^8.0.25",
-    "@types/reflect-metadata": "0.0.5",
+    "@types/mocha": "^5.2.5",
+    "@types/node": "^10.12.9",
     "@types/request": "^2.0.3",
-    "@types/sinon": "^2.3.3",
+    "@types/sinon": "^5.0.6",
     "chai": "^4.1.1",
-    "mocha": "^3.5.0",
+    "mocha": "^5.2.0",
     "mock-spawn": "^0.2.6",
-    "nyc": "^11.1.0",
-    "sinon": "^3.2.1",
-    "typescript": "^2.4.2"
+    "nyc": "^13.1.0",
+    "sinon": "^7.1.1",
+    "source-map-support": "^0.5.9",
+    "ts-node": "^7.0.1",
+    "typescript": "^3.1.6"
   },
   "dependencies": {
     "async": "^2.5.0",
     "black-hole-stream": "0.0.1",
     "easy-table": "^1.1.0",
-    "file-exists": "^4.0.0",
+    "file-exists": "^5.0.1",
     "inpath": "^1.0.2",
-    "inversify": "^4.13.0",
+    "inversify": "^5.0.1",
     "lodash": "^4.17.4",
     "nested-yargs": "^1.0.7",
     "node-status": "^1.0.0",
@@ -58,6 +59,6 @@
     "safe-json-parse": "^4.0.0",
     "shorthash": "0.0.2",
     "tmp": "0.0.33",
-    "username": "^3.0.0"
+    "username": "^4.0.0"
   }
 }

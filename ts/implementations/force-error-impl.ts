@@ -1,14 +1,21 @@
 import {injectable} from 'inversify';
-import {ForceError} from "../interfaces/force-error";
+import {ForceError} from '..';
 
 @injectable()
 export class ForceErrorImpl implements ForceError {
-  forceError: boolean = false;
+  forceError = false;
+  forceException = false;
 
-  //noinspection JSUnusedLocalSymbols,JSUnusedLocalSymbols
+  throwException() {
+    if(!this.forceException) {
+      return;
+    }
+    throw new Error('forceException');
+  }
+
   checkForceError(message: string, cb: (err: Error, anything: any, anything2?: any) => void = null): boolean {
-    if (this.forceError && typeof cb === 'function') {
-      cb(new Error(`force error: ${message}`), null);
+    if(this.forceError && typeof cb === 'function') {
+      cb(new Error(`force error: ${message}`), null, null);
     }
     return this.forceError;
   }

@@ -1,8 +1,8 @@
 import 'reflect-metadata';
 import kernel from '../inversify.config';
 import {expect} from 'chai';
-import {} from 'mocha';
-import {RemoteCatalogGetter} from "../interfaces/remote-catalog/remote-catalog-getter";
+import * as mocha from 'mocha';
+import {RemoteCatalogGetter} from '..';
 import path = require('path');
 
 const Url = require('url');
@@ -21,13 +21,14 @@ describe('Testing RemoteCatalogGetter Creation/Force Error', () => {
   });
 });
 
-describe('Testing RemoteCatalogGetter.parsedUrl', () => {
+describe('Testing RemoteCatalogGetter.getParsedUrl', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
   });
   afterEach(() => {
     remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
   });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
@@ -38,8 +39,17 @@ describe('Testing RemoteCatalogGetter.parsedUrl', () => {
       done();
     });
   });
+  it('should catch forcedException', (done) => {
+    remoteCatalogGetter.forceException = true;
+    remoteCatalogGetter.getParsedUrl(null, (err, parsedUrl) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('forceException');
+      expect(parsedUrl).to.not.exist;
+      done();
+    });
+  });
   it('should have callback with error when url is undefined', (done) => {
-    let url;
+    const url = undefined;
     // noinspection JSUnusedAssignment
     remoteCatalogGetter.getParsedUrl(url, (err, parsedUrl) => {
       expect(err).to.exist;
@@ -49,7 +59,7 @@ describe('Testing RemoteCatalogGetter.parsedUrl', () => {
     });
   });
   it('should have callback with error when url is null', (done) => {
-    let url = null;
+    const url = null;
     remoteCatalogGetter.getParsedUrl(url, (err, parsedUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of null`);
@@ -58,7 +68,7 @@ describe('Testing RemoteCatalogGetter.parsedUrl', () => {
     });
   });
   it('should have callback with error when url is and empty string', (done) => {
-    let url = '';
+    const url = '';
     remoteCatalogGetter.getParsedUrl(url, (err, parsedUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal('Empty string is not a url');
@@ -67,7 +77,7 @@ describe('Testing RemoteCatalogGetter.parsedUrl', () => {
     });
   });
   it('should return parsed web url', (done) => {
-    let url = 'http://www.yahoo.com/grindel.jpg';
+    const url = 'http://www.yahoo.com/grindel.jpg';
     remoteCatalogGetter.getParsedUrl(url, (err, parsedUrl) => {
       expect(err).to.not.exist;
       expect(parsedUrl).to.be.an.instanceof(Url.constructor);
@@ -76,7 +86,7 @@ describe('Testing RemoteCatalogGetter.parsedUrl', () => {
     });
   });
   it('should return parsed file url', (done) => {
-    let url = '/tmp/grindel.jpg';
+    const url = '/tmp/grindel.jpg';
     remoteCatalogGetter.getParsedUrl(url, (err, parsedUrl) => {
       expect(err).to.not.exist;
       expect(parsedUrl).to.be.an.instanceof(Url.constructor);
@@ -99,16 +109,18 @@ describe('Testing RemoteCatalogGetter.resolveTextResourceFromUrl', () => {
     remoteCatalogGetter.resolveTextResourceFromUrl(null, (err, text, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal('force error: RemoteCatalogGetterImpl.resolveTextResourceFromUrl');
+      expect(text).to.not.exist;
       expect(absoluteUrl).to.not.exist;
       done();
     });
   });
   it('should have callback with error when url is undefined', (done) => {
-    let url;
+    const url = undefined;
     // noinspection JSUnusedAssignment
     remoteCatalogGetter.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of undefined`);
+      expect(text).to.be.empty;
       expect(absoluteUrl).to.not.exist;
       done();
     });
@@ -118,6 +130,7 @@ describe('Testing RemoteCatalogGetter.resolveTextResourceFromUrl', () => {
     remoteCatalogGetter.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of null`);
+      expect(text).to.be.empty;
       expect(absoluteUrl).to.not.exist;
       done();
     });
@@ -127,6 +140,7 @@ describe('Testing RemoteCatalogGetter.resolveTextResourceFromUrl', () => {
     remoteCatalogGetter.resolveTextResourceFromUrl(url, (err, text, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal('Empty string is not a url');
+      expect(text).to.be.empty;
       expect(absoluteUrl).to.not.exist;
       done();
     });
@@ -180,21 +194,25 @@ describe('Testing RemoteCatalogGetter.resolveJsonObjectFromUrl', () => {
   afterEach(() => {
     remoteCatalogGetter.forceError = false;
   });
+  mocha.it('use mocha instance to avoid linter warning', (done) => {
+    done();
+  });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
     remoteCatalogGetter.resolveJsonObjectFromUrl(null, (err, jsonObject, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal('force error: RemoteCatalogGetterImpl.resolveJsonObjectFromUrl');
+      expect(jsonObject).to.not.exist;
       expect(absoluteUrl).to.not.exist;
       done();
     });
   });
   it('should have callback with error when url is undefined', (done) => {
-    let url;
-    // noinspection JSUnusedAssignment
+    const url = undefined;
     remoteCatalogGetter.resolveJsonObjectFromUrl(url, (err, jsonObject, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of undefined`);
+      expect(jsonObject).to.not.exist;
       expect(absoluteUrl).to.not.exist;
       done();
     });

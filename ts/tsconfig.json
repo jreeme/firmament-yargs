@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "es6",
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitAny": false,
@@ -9,20 +9,15 @@
     "preserveConstEnums": true,
     "declaration": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": "/home/jreeme/src/firmament-bash/node_modules/firmament-yargs/js",
+    "outDir": "../js",
     "pretty": true,
     "sourceMap": true,
     "lib": [
       "es6",
       "dom"
     ],
-    "types": [
-      "chai",
-      "inversify",
-      "lodash",
-      "mocha",
-      "node",
-      "reflect-metadata"
+    "typeRoots": [
+      "node_modules/@types"
     ],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true
