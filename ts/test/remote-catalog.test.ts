@@ -11,9 +11,11 @@ describe('Testing RemoteCatalogGetter Creation/Force Error', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+    remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
   });
   afterEach(() => {
-    remoteCatalogGetter.forceError = false;
   });
   it('should be created by kernel', (done) => {
     expect(remoteCatalogGetter).to.exist;
@@ -25,10 +27,11 @@ describe('Testing RemoteCatalogGetter.getParsedUrl', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
-  });
-  afterEach(() => {
     remoteCatalogGetter.forceError = false;
     remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
+  });
+  afterEach(() => {
   });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
@@ -100,15 +103,39 @@ describe('Testing RemoteCatalogGetter.resolveTextResourceFromUrl', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+    remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
   });
   afterEach(() => {
-    remoteCatalogGetter.forceError = false;
   });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
     remoteCatalogGetter.resolveTextResourceFromUrl(null, (err, text, absoluteUrl) => {
       expect(err).to.exist;
       expect(err.message).to.equal('force error: RemoteCatalogGetterImpl.resolveTextResourceFromUrl');
+      expect(text).to.not.exist;
+      expect(absoluteUrl).to.not.exist;
+      done();
+    });
+  });
+  it('should catch forcedException', (done) => {
+    remoteCatalogGetter.forceException = true;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
+    remoteCatalogGetter.resolveTextResourceFromUrl(null, (err, text, absoluteUrl) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('forceException');
+      expect(text).to.not.exist;
+      expect(absoluteUrl).to.not.exist;
+      done();
+    });
+  });
+  it('should catch inner (2) forcedException', (done) => {
+    remoteCatalogGetter.forceException = true;
+    remoteCatalogGetter.forceExceptionWaitCount = 2;
+    remoteCatalogGetter.resolveTextResourceFromUrl('/tmp', (err, text, absoluteUrl) => {
+      expect(err).to.exist;
+      expect(err.message).to.equal('forceException');
       expect(text).to.not.exist;
       expect(absoluteUrl).to.not.exist;
       done();
@@ -190,9 +217,11 @@ describe('Testing RemoteCatalogGetter.resolveJsonObjectFromUrl', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+    remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
   });
   afterEach(() => {
-    remoteCatalogGetter.forceError = false;
   });
   mocha.it('use mocha instance to avoid linter warning', (done) => {
     done();
@@ -252,9 +281,11 @@ describe('Testing RemoteCatalogGetter.getRemoteResource', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+    remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
   });
   afterEach(() => {
-    remoteCatalogGetter.forceError = false;
   });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
@@ -333,9 +364,11 @@ describe('Testing RemoteCatalogGetter.getCatalogFromUrl', () => {
   let remoteCatalogGetter: RemoteCatalogGetter;
   beforeEach(() => {
     remoteCatalogGetter = kernel.get<RemoteCatalogGetter>('RemoteCatalogGetter');
+    remoteCatalogGetter.forceError = false;
+    remoteCatalogGetter.forceException = false;
+    remoteCatalogGetter.forceExceptionWaitCount = 0;
   });
   afterEach(() => {
-    remoteCatalogGetter.forceError = false;
   });
   it('should have callback with error', (done) => {
     remoteCatalogGetter.forceError = true;
@@ -347,9 +380,7 @@ describe('Testing RemoteCatalogGetter.getCatalogFromUrl', () => {
     });
   });
   it('should have callback with error when url is undefined', (done) => {
-    let url;
-    // noinspection JSUnusedAssignment
-    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+    remoteCatalogGetter.getCatalogFromUrl(undefined, (err, remoteCatalog) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of undefined`);
       expect(remoteCatalog).to.not.exist;
@@ -357,8 +388,7 @@ describe('Testing RemoteCatalogGetter.getCatalogFromUrl', () => {
     });
   });
   it('should have callback with error when url is null', (done) => {
-    const url = null;
-    remoteCatalogGetter.getCatalogFromUrl(url, (err, remoteCatalog) => {
+    remoteCatalogGetter.getCatalogFromUrl(null, (err, remoteCatalog) => {
       expect(err).to.exist;
       expect(err.message).to.equal(`Cannot read property 'constructor' of null`);
       expect(remoteCatalog).to.not.exist;

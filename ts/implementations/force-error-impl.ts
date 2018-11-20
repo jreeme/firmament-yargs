@@ -5,10 +5,11 @@ import {ForceError} from '..';
 export class ForceErrorImpl implements ForceError {
   forceError = false;
   forceException = false;
+  forceExceptionWaitCount = 0;
 
   throwException() {
-    if(!this.forceException) {
-      return;
+    if(!this.forceException || this.forceExceptionWaitCount) {
+      return --this.forceExceptionWaitCount;
     }
     throw new Error('forceException');
   }

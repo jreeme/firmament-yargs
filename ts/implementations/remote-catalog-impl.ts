@@ -84,28 +84,6 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
                 cb(null, remoteCatalog);
               });
             });
-          //-->
-          /*          remoteCatalog.entries.forEach(entry => {
-                      entry.urls.forEach(url => {
-                        me.getParsedUrl(url, (err, parsedUrl) => {
-                          if (me.commandUtil.callbackIfError(cb, err)) {
-                            return;
-                          }
-                          if (!parsedUrl.protocol) {
-                            url = path.isAbsolute(parsedUrl.path) ? parsedUrl.path : `${baseUrl}/${parsedUrl.path}`;
-                          }
-                          fnArray.push(async.apply(me.getRemoteResource.bind(me), url, entry.name));
-                        });
-                      });
-                    });
-                    async.parallel(fnArray, (err, results: RemoteCatalogResource[]) => {
-                      //Now collate results into catalog and send it back
-                      remoteCatalog.entries.forEach(entry => {
-                        entry.resources =
-                          <RemoteCatalogResource[]>_.filter(results, {parentCatalogEntryName: entry.name});
-                      });
-                      cb(null, remoteCatalog);
-                    });*/
         } catch(err) {
           me.commandUtil.callbackIfError(cb, err);
         }
@@ -158,41 +136,47 @@ export class RemoteCatalogGetterImpl extends ForceErrorImpl implements RemoteCat
 
   resolveTextResourceFromUrl(url: Url|string, cb: (err: Error, text?: string, absoluteUrl?: string) => void) {
     const me = this;
-    cb = me.checkCallback(cb);
-    if(me.checkForceError('RemoteCatalogGetterImpl.resolveTextResourceFromUrl', cb)) {
-      return;
-    }
-    me.getParsedUrl(url, (err, parsedUrl) => {
-      if(err) {
-        return cb(err, '', null);
+    try {
+      me.throwException();
+      cb = me.checkCallback(cb);
+      if(me.checkForceError('RemoteCatalogGetterImpl.resolveTextResourceFromUrl', cb)) {
+        return;
       }
-      try {
-        if(!parsedUrl.protocol) {
-          const urlString = parsedUrl.path;
-          return fileExists(urlString, (err, exists) => {
-            if(!exists) {
-              return cb(new Error(`Url: '${url}' does not exist`), '', urlString);
-            }
-            fs.readFile(urlString, 'utf8', (err, data) => {
-              cb(err, data.toString(), urlString);
+      me.getParsedUrl(url, (err, parsedUrl) => {
+        if(err) {
+          return cb(err, '', null);
+        }
+        try {
+          me.throwException();
+          if(!parsedUrl.protocol) {
+            const urlString = parsedUrl.path;
+            return fileExists(urlString, (err, exists) => {
+              if(!exists) {
+                return cb(new Error(`Url: '${url}' does not exist`), '', urlString);
+              }
+              fs.readFile(urlString, 'utf8', (err, data) => {
+                cb(err, data.toString(), urlString);
+              });
             });
+          }
+          //Let's look on the web
+          request(parsedUrl.href, (err, res, text) => {
+            if(err) {
+              return cb(err, '', parsedUrl.href);
+            }
+            if(res.statusCode !== 200) {
+              return cb(new Error(`Error retrieving '${parsedUrl.href}'`), '', parsedUrl.href);
+            }
+            return cb(null, text.toString(), parsedUrl.href);
           });
         }
-        //Let's look on the web
-        request(parsedUrl.href, (err, res, text) => {
-          if(err) {
-            return cb(err, '', parsedUrl.href);
-          }
-          if(res.statusCode !== 200) {
-            return cb(new Error(`Error retrieving '${parsedUrl.href}'`), '', parsedUrl.href);
-          }
-          return cb(null, text.toString(), parsedUrl.href);
-        });
-      }
-      catch(err) {
-        return cb(err, null);
-      }
-    });
+        catch(err) {
+          return cb(err, null);
+        }
+      });
+    } catch(err) {
+      cb(err);
+    }
   }
 
   getParsedUrl(url: Url|string, cb: (err: Error, parsedUrl?: Url) => void) {

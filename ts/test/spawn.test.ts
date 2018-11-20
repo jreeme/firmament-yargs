@@ -101,7 +101,7 @@ describe('Testing Spawn ', () => {
   let cbDiagnosticSpy;
 
   function cbStatusMock(err, result) {
-    if (err) {
+    if(err) {
       cbStdErrSpy(err, result);
     } else {
       cbStdOutSpy(err, result);
@@ -129,7 +129,7 @@ describe('Testing Spawn ', () => {
     spawn = kernel.get<Spawn>('Spawn');
     argArray = getArgArray();
     spawnOptions = getNewSpawnOptions();
-    sinonSandbox = sinon.sandbox.create();
+    sinonSandbox = sinon.createSandbox();
     cbDiagnosticSpy = sinonSandbox.spy(o, 'cbDiagnostic');
     cbStdOutSpy = sinonSandbox.spy(o, 'cbStdOutCall');
     cbStdErrSpy = sinonSandbox.spy(o, 'cbStdErrCall');
@@ -182,7 +182,7 @@ describe('Testing Spawn ', () => {
       o.cbStatus,
       (err, result) => {
         expect(err).to.exist;
-        expect(err.message).to.equal('Bad argument');
+        expect(err.message).to.equal('"file" argument must be a non-empty string');
         expect(result).to.not.exist;
         expect(cbStdErrSpy.called).to.be.false;
         expect(cbStdOutSpy.called).to.be.false;
@@ -201,7 +201,7 @@ describe('Testing Spawn ', () => {
       o.cbStatus,
       (err, result) => {
         expect(err).to.exist;
-        expect(err.message).to.equal('Bad argument');
+        expect(err.message).to.equal('"file" argument must be a non-empty string');
         expect(result).to.not.exist;
         expect(cbStdErrSpy.called).to.be.false;
         expect(cbStdOutSpy.called).to.be.false;
@@ -418,6 +418,46 @@ describe('Testing Spawn ', () => {
       },
       o.cbDiagnostic
     );
+  });
+});
+
+describe('Testing SudoSpawn ', () => {
+  let spawn: Spawn;
+  let argArray: string[];
+  let spawnOptions: SpawnOptions2;
+  let sinonSandbox;
+  let cbStdOutSpy;
+  let cbStdErrSpy;
+  let cbDiagnosticSpy;
+
+  const o = {
+    cbStdOutCall: () => {
+    },
+    cbStdErrCall: () => {
+    },
+    cbStatus: () => {
+    },
+    cbDiagnostic: () => {
+    }
+  };
+  before(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(MockChildProcessSpawnImpl);
+  });
+  after(() => {
+    //kernel.rebind<ChildProcessSpawn>('ChildProcessSpawn').to(ChildProcessSpawnImpl);
+  });
+  beforeEach(() => {
+    //kernel.bind<ChildProcessSpawn>('ChildProcessSpawn').to(MockChildProcessSpawnImpl);
+    spawn = kernel.get<Spawn>('Spawn');
+    argArray = getArgArray();
+    spawnOptions = getNewSpawnOptions();
+    sinonSandbox = sinon.createSandbox();
+    cbDiagnosticSpy = sinonSandbox.spy(o, 'cbDiagnostic');
+    cbStdOutSpy = sinonSandbox.spy(o, 'cbStdOutCall');
+    cbStdErrSpy = sinonSandbox.spy(o, 'cbStdErrCall');
+  });
+  afterEach(() => {
+    sinonSandbox.restore();
   });
   it(`sudoSpawnAsync: forceError `, (done) => {
     spawn.forceError = true;

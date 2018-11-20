@@ -5,13 +5,13 @@ case $1 in
     counter=1
     for arg in $@
     do
-      if [ ${counter} -ge 5 ]
+      if [[ ${counter} -ge 5 ]]
       then
-        if [ $3 == 'writeToStdOut' ]
+        if [[ $3 == 'writeToStdOut' ]]
         then
           printf "$arg"
         fi
-        if [ $4 == 'writeToStdErr' ]
+        if [[ $4 == 'writeToStdErr' ]]
         then
           #echo String sent to stderr >&2
           printf "$arg" >&2
