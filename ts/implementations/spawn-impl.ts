@@ -57,22 +57,35 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       = me.validate_spawnShellCommandAsync_args(_cmd, _options, _cbStatus, _cbFinal, _cbDiagnostic);
 
     if(me.checkForceError('spawnShellCommandAsync', cbFinal)) {
-      return;
+      return null;
     }
-    if(!options.remoteHost && !options.remoteUser && !options.remotePassword) {
+    if(!options.remoteHost && !options.remoteUser && !(options.remotePassword || options.remoteSshKeyPath)) {
       //Execute cmd locally
       return me._spawnShellCommandAsync(cmd, options, cbStatus, cbFinal, cbDiagnostic);
     }
-    if(!options.remoteHost || !options.remoteUser || !options.remotePassword) {
-      throw new Error('If any of options.(remoteHost|remoteUser|remotePassword) are specified all must be specified');
+    const msgBase = 'Not enough params for remote call:\n\n';
+    let msg = msgBase;
+    if(!options.remoteHost) {
+      msg += `* 'remoteHost' must be set to the remote server hostname\n`;
     }
+    if(!options.remoteUser) {
+      msg += `* 'remoteUser' must be set to the user on the remote host to execute the call as\n`;
+    }
+    if(!(options.remotePassword || options.remoteSshKeyPath)) {
+      msg += `* either 'remotePassword' or 'remoteSshKeyPath' (or both, SshKey wins) must be specified`;
+    }
+    if(msg.length != msgBase.length) {
+      cbFinal(new Error(msg), msg);
+      return null;
+    }
+    options.remotePassword = options.remoteSshKeyPath ? undefined : options.remotePassword;
     //Construct calls to remote host
     const tmp = require('tmp');
     tmp.file({discardDescriptor: true}, (err: Error, tmpPath) => {
       if(err) {
         return cbFinal(err, 'Failed to create temporary file');
       }
-      const {remoteHost, remoteUser, remotePassword} = options;
+      const {remoteHost, remoteUser, remotePassword, remoteSshKeyPath, remoteSshPort} = options;
       const subShellOptions = {
         suppressDiagnostics: true,
         suppressStdOut: true,
@@ -91,17 +104,29 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         '-p',
         remotePassword
       ];
-      const sshpassScpCmd = sshpassCmd.concat([
-        'scp',
+      const sshKeyPathOptions = [
+        '-i',
+        `${remoteSshKeyPath}`
+      ];
+      const sshOptions = [
         '-o',
         'StrictHostKeyChecking=no'
-      ]);
-      const sshpassSshCmd = sshpassCmd.concat([
+      ];
+      const scpCmd = [
+        'scp',
+        ...sshOptions
+      ];
+      const sshCmd = [
         'ssh',
-        '-o',
-        'StrictHostKeyChecking=no',
-        '-t'
-      ]);
+        '-t',
+        ...sshOptions
+      ];
+      if(remoteSshPort) {
+        scpCmd.push('-P', `${remoteSshPort}`);
+        sshCmd.push('-p', `${remoteSshPort}`);
+      }
+      const finalScpCmd = remoteSshKeyPath ? scpCmd.concat(sshKeyPathOptions) : sshpassCmd.concat(scpCmd);
+      const finalSshCmd = remoteSshKeyPath ? sshCmd.concat(sshKeyPathOptions) : sshpassCmd.concat(sshCmd);
       async.waterfall([
         (cb) => {
           //Construct file to be executed on remote host
@@ -109,13 +134,14 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
           writeStream.on('close', () => {
             cb();
           });
-          writeStream.write(cmd.join(' '), () => {
+          const cmdString = cmd.join(' ') + `\nrm ${tmpPath}`;
+          writeStream.write(cmdString, () => {
             writeStream.close();
           });
         },
         (cb) => {
           //Copy file to be executed to remote host using 'scp'
-          const cmd = sshpassScpCmd.concat([
+          const cmd = finalScpCmd.concat([
             tmpPath,
             `${remoteUser}@${remoteHost}:/tmp`
           ]);
@@ -127,20 +153,13 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         },
         (result: string, cb) => {
           //If 'scp' (above) succeeded we feel pretty good about doing a remote 'ssh' call
-          const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpPath}"`);
-          const _cmd = envBashCmd.concat(cmd.join(' '));
+          //const cmd = finalSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpPath}"`);
+          const remoteScriptCmd = `/usr/bin/env bash ${tmpPath}`;
+          const executeRemoteScriptCmd = remoteSshKeyPath
+            ? remoteScriptCmd
+            : `echo ${remotePassword} | sudo -S ${remoteScriptCmd}`;
 
-          me._spawnShellCommandAsync(
-            _cmd,
-            subShellOptions,
-            (err: Error, result: string) => {
-              me.commandUtil.log(result);
-            },
-            cb);
-        },
-        (result: string, cb) => {
-          //Now clean up the remote script file we just executed
-          const cmd = sshpassSshCmd.concat(`${remoteUser}@${remoteHost} "rm ${tmpPath}"`);
+          const cmd = finalSshCmd.concat(`${remoteUser}@${remoteHost} "${executeRemoteScriptCmd}"`);
           const _cmd = envBashCmd.concat(cmd.join(' '));
 
           me._spawnShellCommandAsync(
@@ -151,7 +170,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             },
             cb);
         }
-      ], (outerErr: Error/*, result:any*/) => {
+      ], (outerErr: Error, result: any) => {
         if(outerErr) {
           me.safeJson.safeParse(outerErr.message, (err: Error, obj: any) => {
             try {
@@ -202,7 +221,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
             }
           });
         } else {
-          cbFinal(null, 'OK');
+          cbFinal(null, result);
         }
       });
     });

@@ -16,4 +16,6 @@ export interface SpawnOptions2 extends SpawnOptions {
   remoteHost?:string;
   remoteUser?:string;
   remotePassword?:string;
+  remoteSshKeyPath?:string;
+  remoteSshPort?:number;
 }

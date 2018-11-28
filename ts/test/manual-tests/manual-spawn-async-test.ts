@@ -8,29 +8,30 @@ let spawn = kernel.get<Spawn>('Spawn');
 let commandUtil = kernel.get<CommandUtil>('CommandUtil');
 
 async.each([
-  'nfs.parrot-les.keyw'
-  , 'nfs.parrot-les.keyw'
-  , 'nfs.parrot-les.keyw'
-  , 'nfs.parrot-les.keyw'
+  'nfs.parrot-scif.keyw'
 ], (volume, cb) => {
   const spawnOptions: SpawnOptions2 = {
     suppressStdOut: false,
     suppressStdErr: false,
     cacheStdOut: true,
     cacheStdErr: true,
-    suppressResult: false
-    /*          ,remoteHost: dsct.nfsConfig.serverAddr,
-              remoteUser: dsct.nfsConfig.nfsUser,
-              remotePassword: dsct.nfsConfig.nfsPassword*/
+    suppressResult: false,
+    remoteHost: 'localhost',
+    remoteUser: 'root',
+    remoteSshKeyPath: '/home/jreeme/.ssh/parrot',
+    //remoteSshPort: 2222
+    //remotePassword: 'password'
   };
   spawn.spawnShellCommandAsync(
     [
-      'showmount',
-      '-e',
-      `${volume}`
+      'ls',
+      '-F',
+      '-a',
+      '-l'
     ],
     spawnOptions,
     (err, result) => {
+      commandUtil.log(result);
     },
     (err: Error, result: string) => {
       commandUtil.log(result);
