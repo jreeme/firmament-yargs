@@ -9,7 +9,7 @@
     "preserveConstEnums": true,
     "declaration": true,
     "suppressImplicitAnyIndexErrors": true,
-    "outDir": "/home/jreeme/src/firmament/node_modules/firmament-yargs/js",
+    "outDir": "../js",
     "pretty": true,
     "sourceMap": true,
     "lib": [
