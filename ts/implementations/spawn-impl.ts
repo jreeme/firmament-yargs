@@ -179,7 +179,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                   switch(obj.code.code) {
                     case('ENOENT'):
                       if(me.positive.areYouSure(
-                        `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)?`,
+                        `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)? [Y/n]`,
                         'Operation canceled.',
                         true,
                         FailureRetVal.TRUE)) {

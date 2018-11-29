@@ -1,6 +1,6 @@
 {
   "name": "firmament-yargs",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "Typescript classes for building CLI node applications",
   "main": "js/index.js",
   "typings": "js/index",
@@ -47,6 +47,7 @@
     "file-exists": "^5.0.1",
     "inpath": "^1.0.2",
     "inversify": "^5.0.1",
+    "jsonfile": "^5.0.0",
     "lodash": "^4.17.4",
     "nested-yargs": "^1.0.7",
     "node-status": "^1.0.0",
