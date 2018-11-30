@@ -25,6 +25,42 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     super();
   }
 
+  installAptitudePackages(packageNames: string[], cb: (err: Error, result: string) => void): void;
+  installAptitudePackages(packageNames: string[], withInteractiveConfirm: ((err: Error, result: string) => void)|boolean, cb?: (err: Error, result: string) => void): void {
+    const me = this;
+    if(me.positive.areYouSure(
+      `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)? [Y/n]`,
+      'Operation canceled.',
+      true,
+      FailureRetVal.TRUE)) {
+    }
+    me.sudoSpawnAsync(
+      [
+        'apt-get',
+        'install',
+        '-y',
+        'sshpass'
+      ],
+      {
+        suppressDiagnostics: true,
+        suppressStdOut: false,
+        suppressStdErr: false,
+        cacheStdOut: false,
+        cacheStdErr: false,
+        sudoPassword: 'password',
+        suppressResult: true,
+      },
+      () => {
+      },
+      (err: Error, result: string) => {
+        cb(err, err ? err.message : `'sshpass' installed. Try operation again.`);
+      });
+  }
+
+  removeAptitudePackages(packageNames: string[], cb: (err: Error, result: string) => void): void;
+  removeAptitudePackages(packageNames: string[], withInteractiveConfirm: ((err: Error, result: string) => void)|boolean, cb?: (err: Error, result: string) => void): void {
+  }
+
   private validate_spawnShellCommandAsync_args(cmd: string[],
                                                options: SpawnOptions2,
                                                cbStatus: (err: Error, result: string) => void,
@@ -178,34 +214,6 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                 case('object'):
                   switch(obj.code.code) {
                     case('ENOENT'):
-                      if(me.positive.areYouSure(
-                        `Looks like 'sshpass' is not installed. Want me to try to install it (using apt-get)? [Y/n]`,
-                        'Operation canceled.',
-                        true,
-                        FailureRetVal.TRUE)) {
-                        return me.sudoSpawnAsync(
-                          [
-                            'apt-get',
-                            'install',
-                            '-y',
-                            'sshpass'
-                          ],
-                          {
-                            suppressDiagnostics: true,
-                            suppressStdOut: false,
-                            suppressStdErr: false,
-                            cacheStdOut: false,
-                            cacheStdErr: false,
-                            sudoPassword: 'password',
-                            suppressResult: true,
-                          },
-                          (err: Error, result: string) => {
-                            me.commandUtil.log(result);
-                          },
-                          (err: Error) => {
-                            cbFinal(err, err ? err.message : `'sshpass' installed. Try operation again.`);
-                          });
-                      }
                       break;
                     default:
                       return cbFinal(outerErr, outerErr.message);
