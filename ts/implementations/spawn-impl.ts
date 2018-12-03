@@ -145,6 +145,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
         `${remoteSshKeyPath}`
       ];
       const sshOptions = [
+        '-q',
         '-o',
         'StrictHostKeyChecking=no'
       ];
