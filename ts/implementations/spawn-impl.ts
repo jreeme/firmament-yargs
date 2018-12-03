@@ -154,7 +154,6 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       ];
       const sshCmd = [
         'ssh',
-        '-t',
         ...sshOptions
       ];
       if(remoteSshPort) {
