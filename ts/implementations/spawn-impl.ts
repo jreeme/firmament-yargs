@@ -214,6 +214,8 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
                 case('object'):
                   switch(obj.code.code) {
                     case('ENOENT'):
+                      //TODO: Finish 'installAptitudePackages' method above to install sshpass
+                      me.commandUtil.processExitWithError(new Error(`Need to install 'sshpass': sudo apt-get install -y sshpass`));
                       break;
                     default:
                       return cbFinal(outerErr, outerErr.message);
