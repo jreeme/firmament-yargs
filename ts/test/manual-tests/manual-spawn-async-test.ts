@@ -17,10 +17,10 @@ async.each([
     cacheStdErr: true,
     suppressResult: false,
     remoteHost: 'localhost',
-    remoteUser: 'root',
-    remoteSshKeyPath: '/home/jreeme/.ssh/parrot',
+    remoteUser: 'nfs',
+    //remoteSshKeyPath: '/home/jreeme/.ssh/parrot',
     //remoteSshPort: 2222
-    //remotePassword: 'password'
+    remotePassword: 'password'
   };
   spawn.spawnShellCommandAsync(
     [

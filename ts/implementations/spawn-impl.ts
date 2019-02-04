@@ -117,7 +117,7 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
     options.remotePassword = options.remoteSshKeyPath ? undefined : options.remotePassword;
     //Construct calls to remote host
     const tmp = require('tmp');
-    tmp.file({discardDescriptor: true}, (err: Error, tmpPath) => {
+    tmp.file({discardDescriptor: true}, (err: Error, tmpSrcPath) => {
       if(err) {
         return cbFinal(err, 'Failed to create temporary file');
       }
@@ -165,32 +165,36 @@ export class SpawnImpl extends ForceErrorImpl implements Spawn {
       const finalSshCmd = remoteSshKeyPath ? sshCmd.concat(sshKeyPathOptions) : sshpassCmd.concat(sshCmd);
       async.waterfall([
         (cb) => {
+          const tmpDstPath = `${tmp.tmpNameSync()}.tmp`;
           //Construct file to be executed on remote host
-          const writeStream = fs.createWriteStream(tmpPath);
+          const writeStream = fs.createWriteStream(tmpSrcPath);
           writeStream.on('close', () => {
-            cb();
+            cb(null, tmpDstPath);
           });
-          const cmdString = cmd.join(' ') + `\nrm ${tmpPath}`;
+          const cmdString = cmd.join(' ') + `\nrm ${tmpDstPath}`;
           writeStream.write(cmdString, () => {
             writeStream.close();
           });
         },
-        (cb) => {
+        (tmpDstPath, cb) => {
           //Copy file to be executed to remote host using 'scp'
           const cmd = finalScpCmd.concat([
-            tmpPath,
-            `${remoteUser}@${remoteHost}:/tmp`
+            tmpSrcPath,
+            `${remoteUser}@${remoteHost}:${tmpDstPath}`
           ]);
           me._spawnShellCommandAsync(
             cmd,
             subShellOptions,
             () => {
-            }, cb);
+            },
+            (err, result) => {
+              cb(null, tmpDstPath, result);
+            });
         },
-        (result: string, cb) => {
+        (tmpDstPath: string, result: string, cb) => {
           //If 'scp' (above) succeeded we feel pretty good about doing a remote 'ssh' call
-          //const cmd = finalSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpPath}"`);
-          const remoteScriptCmd = `/usr/bin/env bash ${tmpPath}`;
+          //const cmd = finalSshCmd.concat(`${remoteUser}@${remoteHost} "echo ${remotePassword} | sudo -S /usr/bin/env bash ${tmpDstPath}"`);
+          const remoteScriptCmd = `/usr/bin/env bash ${tmpDstPath}`;
           const executeRemoteScriptCmd = remoteSshKeyPath
             ? remoteScriptCmd
             : `echo ${remotePassword} | sudo -S ${remoteScriptCmd}`;
